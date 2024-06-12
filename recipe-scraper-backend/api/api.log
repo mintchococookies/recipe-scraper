@@ -1,0 +1,16 @@
+2024-06-12 10:40:40,479 WARNING werkzeug MainThread :  * Debugger is active!
+2024-06-12 10:40:40,483 INFO werkzeug MainThread :  * Debugger PIN: 471-573-438
+2024-06-12 10:40:50,079 INFO werkzeug MainThread :  * Detected change in 'C:\\Users\\Lilian\\Desktop\\PERSONAL PROJECTS\\recipe-scraper\\recipe-scraper-backend\\api\\auth.py', reloading
+2024-06-12 10:40:51,071 WARNING werkzeug MainThread :  * Debugger is active!
+2024-06-12 10:40:51,077 INFO werkzeug MainThread :  * Debugger PIN: 471-573-438
+2024-06-12 10:41:18,065 INFO werkzeug Thread-2 : 127.0.0.1 - - [12/Jun/2024 10:41:18] "OPTIONS /scrape-recipe-steps HTTP/1.1" 200 -
+2024-06-12 10:41:18,071 INFO root Thread-3 : Received Authorization header: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJleHAiOjE3MTgyNDYzMjB9.hWmUwBq1qXChzekCQ69Iw3XMofr0HGcvaCiRipXKWxo
+2024-06-12 10:41:18,480 INFO root Thread-3 : DEBUG: extract_recipe_steps_labelled
+2024-06-12 10:41:18,572 INFO root Thread-3 : DEBUG: method 1 ingredients
+2024-06-12 10:41:18,783 INFO werkzeug Thread-3 : 127.0.0.1 - - [12/Jun/2024 10:41:18] "POST /scrape-recipe-steps HTTP/1.1" 200 -
+2024-06-12 10:41:19,129 INFO werkzeug Thread-4 : 127.0.0.1 - - [12/Jun/2024 10:41:19] "OPTIONS /convert-recipe-units HTTP/1.1" 200 -
+2024-06-12 10:41:19,133 INFO root Thread-5 : Received Authorization header: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJleHAiOjE3MTgyNDYzMjB9.hWmUwBq1qXChzekCQ69Iw3XMofr0HGcvaCiRipXKWxo
+2024-06-12 10:41:19,136 INFO root Thread-5 : DEBUG: Conversion method 3
+2024-06-12 10:41:19,139 INFO werkzeug Thread-5 : 127.0.0.1 - - [12/Jun/2024 10:41:19] "POST /convert-recipe-units HTTP/1.1" 200 -
+2024-06-12 10:41:19,457 INFO root Thread-6 : Received Authorization header: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIiLCJleHAiOjE3MTgyNDYzMjB9.hWmUwBq1qXChzekCQ69Iw3XMofr0HGcvaCiRipXKWxo
+2024-06-12 10:41:19,460 INFO root Thread-6 : DEBUG: Conversion method 1

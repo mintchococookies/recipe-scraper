@@ -7,19 +7,10 @@ from urllib.parse import urlparse
 from copy import deepcopy
 from flask_cors import CORS
 from auth import app, api, token_required
+import logging
 
-#CORS(app)
+#CORS(app) # Change to this for production
 CORS(app, origins=["*"])  # Allow all origins for development (not recommended for production)
-
-@api.route('/test-protected')
-class ProtectedResource(Resource):
-    @api.doc(security='basicAuth')
-    @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
-    @token_required
-    def get(self, current_user):
-        return {'message': f'Hello, {current_user}! This is a protected resource.'}
-
-### ================ RECIPE SCRAPING CODE ================
 
 # Define headers to simulate website access via browsers
 headers = {
@@ -92,6 +83,7 @@ unit_type = None
 
 # Function to extract the recipe steps when there's some labelling (id/class) on the html elements that indicates its the recipe
 def extract_recipe_steps_labelled(soup):
+    logging.info("DEBUG: extract_recipe_steps_labelled")
     recipe_steps = []
     step_positions = []
     extracted_steps = set()  
@@ -107,16 +99,15 @@ def extract_recipe_steps_labelled(soup):
                 recipe_steps.append(text.strip())
                 step_positions.append(recipe_steps_html.index(element))
                 extracted_steps.add(text.strip())
-    print("DEBUG: extract_recipe_steps_labelled")
     return recipe_steps
 
 # Function to extract the recipe steps when there is no labelling (id/class) on the html elements at all to indicate that its the recipe
 def extract_recipe_steps_manual(soup):
     recipe_steps = []
 
-    # DOM traversal starting from any heading containing directions, instructions or method
+    # DOM traversal starting from any heading containing directions, instructions, method, or how to make
     if not recipe_steps:
-        print("DEBUG: extract_recipe_steps_manual")
+        logging.info("DEBUG: extract_recipe_steps_manual")
         headers = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
         target_headers = [header for header in headers if any(keyword.lower() in header.text.lower() for keyword in ['directions', 'instructions', 'method', 'how to make'])]
 
@@ -126,11 +117,13 @@ def extract_recipe_steps_manual(soup):
                 ol_element = current_element.find('ol')
                 if ol_element:
                     for li in ol_element.find_all('li'):
-                        recipe_steps.append(li.get_text(strip=True))
+                        step_text = li.get_text(strip=True)
+                        if step_text not in recipe_steps:
+                            recipe_steps.append(step_text)
                     break
                 current_element = current_element.find_next()
     
-    return list(set(recipe_steps))
+    return recipe_steps
 
 def extract_recipe_steps(soup):
     # Try to find the recipe by the class/id labels
@@ -143,23 +136,27 @@ def extract_recipe_steps(soup):
     return recipe_steps
 
 def extract_ingredients(soup):
+    ingredients = []
+
     # Found id or class labels for the ingredient li
     ingredients_html = [ingredient.text.strip() + " " for ingredient in soup.find_all('li', id=re.compile(r'.*(ingredient).*', re.I))]
     ingredients_html += [" ".join(ingredient.text.split()) for ingredient in soup.find_all(['p', 'li'], {'class': re.compile(r'ingredient', re.I)})]
     if ingredients_html:
-        print("DEBUG: method 1 ingredients")
-        return ingredients_html
-    
+        logging.info("DEBUG: method 1 ingredients")
+        return sorted(set(ingredients_html))
+
     # Found ingredients list (ol/ul) but li is not labelled
     elif not ingredients_html:
-        ingredients = []
         for element in soup.find_all(['ol', 'ul', 'div'], {'class': re.compile(r'ingredient', re.I)}):
-            print("DEBUG: method 2 ingredients")
+            logging.info("DEBUG: method 2 ingredients")
             for item in element.find_all('li'):  # Find all list items within the <ol> or <ul>
-                ingredients.append(item.get_text(strip=True))  # Append each list item to the ingredients list
+                ingredient_text = item.get_text(strip=True)
+                if ingredient_text not in ingredients:
+                    ingredients.append(ingredient_text)  # Append each list item to the ingredients list
 
     # Manually search for what looks like ingredients (current limitation is if the ingredients list totally got no labelling anywhere in the whole page then cannot)
     if not ingredients:
+        logging.info("DEBUG: method 3 ingredients")
         headers = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
         target_headers = [header for header in headers if any(keyword.lower() in header.text.lower() for keyword in ['ingredients'])]
 
@@ -169,13 +166,14 @@ def extract_ingredients(soup):
                 ol_element = current_element.find('ul')
                 if ol_element:
                     for li in ol_element.find_all('li'):
-                        ingredients.append(li.get_text(strip=True))
+                        ingredient_text = li.get_text(strip=True)
+                        if ingredient_text not in ingredients:
+                            ingredients.append(ingredient_text)
                     break
 
                 current_element = current_element.find_next()
-        print("DEBUG: method 3 ingredients")
-    
-    return list(set(ingredients))
+
+    return ingredients
 
 def extract_recipe_name(soup, recipe_url):
     # Parse the URL to extract the recipe name
@@ -198,9 +196,9 @@ def extract_recipe_name(soup, recipe_url):
         intersection = words1.intersection(words2)
         similarity = len(intersection) / max(len(words1), len(words2))
         if similarity >= 0.3:
-            return item
+            return item.strip()
     
-    return recipe_name_from_url
+    return recipe_name_from_url.strip()
 
 # FUNCTION TO GET THE SERVING SIZE OF THE RECIPE ON THE WEBSITE
 def get_serving_size(soup):
@@ -256,7 +254,6 @@ def postprocess_list(lst):
 def postprocess_text(txt):
     return txt.strip()
 
-
 def standardize_units(ingredients):
     unit_mapping = {'g': 'g', 'gram': 'grams', 'g': 'grams', 'lb': 'lb', 'pound': 'lb', 'pounds': 'lb', 'kg': 'kg', 'kilogram': 'kg', 
                     'kilograms': 'kg', 'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz', 'mg': 'mg', 'milligram': 'mg', 'milligrams': 'mg', 
@@ -282,9 +279,6 @@ def standardize_units(ingredients):
 
 # FUNCTIONS TO POSTPROCESS THE INGREDIENTS LIST - DOESN'T WORK WITH 3 TO 4, 1 TO 2 ETC. eg: https://www.simplyrecipes.com/recipes/spaghetti_alla_carbonara/
 def extract_units(ingredients):
-    global original_unit_type
-    global ingredients_pre_conversion
-
     parsed_ingredients = []
     for ingredient in ingredients:
         match = re.match(r'^((?:\d+\s*)?(?:\d*½|\d*¼|\d*[¾¾]|\d*⅛|\d*⅔|\d+\s*[/–-]\s*\d+)?[\s\d/–-]*)?[\s]*(?:([a-zA-Z]+)\b)?[\s]*(.*)$', ingredient)
@@ -299,7 +293,7 @@ def extract_units(ingredients):
             name = modified_unit[2] + " " + name if len(modified_unit) > 1 else name
 
         else:
-            print("DEBUG: Unit is NoneType:", name)
+            logging.info("DEBUG: Unit is NoneType:", name)
         
         if unit and unit.lower() not in common_units:
             name = unit + " " + name
@@ -315,10 +309,9 @@ def extract_units(ingredients):
     if any(i[1] in to_metric_conversion for i in ingredients_pre_conversion):
         original_unit_type = "si"
 
-    return standardized_ingredients
+    return standardized_ingredients, original_unit_type, ingredients_pre_conversion
 
-def calculate_servings(ingredients):
-    # global servings
+def calculate_servings(ingredients, servings, requested_serving_size):
     for ingredient in ingredients:
         quantity = ingredient[0]
         if quantity:
@@ -333,14 +326,7 @@ def calculate_servings(ingredients):
             ingredient[0] = new_quantity[:-2] if new_quantity.endswith(".0") else new_quantity
     return ingredients
 
-def convert_units(ingredients, unit_type):
-    global requested_serving_size
-    #global servings
-    global original_unit_type
-    global ingredients_pre_conversion
-    
-    convert_to = None
-
+def convert_units(ingredients, unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion):
     # check if ingredients is populated or not first
     if not ingredients:
         return None
@@ -350,16 +336,17 @@ def convert_units(ingredients, unit_type):
     # if they want to convert back to the original unit, must maintain the original units
     if original_unit_type == unit_type:
         if requested_serving_size is None or requested_serving_size == servings:
-            print("DEBUG: Conversion method 1")
+            logging.info("DEBUG: Conversion method 1")
             return ingredients_pre_conversion
         else:
-            print("DEBUG: Conversion method 2")
-            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion))
+            logging.info("DEBUG: Conversion method 2")
+            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion), servings, requested_serving_size)
             return ingredients
             
     # only do the conversion if they want a different unit
     else:
         for ingredient in ingredients:
+            convert_to = None
             quantity = ingredient[0]
             if quantity: # convert fractions like 3 1/4 to a whole number i.e. 3.25
                 quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
@@ -375,7 +362,6 @@ def convert_units(ingredients, unit_type):
                         convert_to = "ml" 
                     else:
                         convert_to = "g"
-                
                 # convert grams of flour to cups of flour and not oz of flour
                 if any(solid in name for solid in solids):
                     convert_to = "cups" if unit == "g" else "oz"
@@ -400,7 +386,7 @@ def convert_units(ingredients, unit_type):
             
                 ingredient[0] = round(converted_quantity, 2)
                 ingredient[1] = converted_unit
-        print("DEBUG: Conversion method 3")
+        logging.info("DEBUG: Conversion method 3")
 
     return ingredients
 
@@ -408,17 +394,22 @@ def convert_units(ingredients, unit_type):
 @api.route('/convert-recipe-units')
 class ConvertUnits(Resource):
     @api.doc(description="Convert between SI and metric units")
-    @api.expect(unit_type_model)
     @api.doc(security='basicAuth')
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
+    @api.expect(unit_type_model)
     @token_required
     def post(self, current_user):
         global ingredients
         global unit_type
+        global requested_serving_size
+        global servings
+        global original_unit_type
+        global ingredients_pre_conversion
+        
         data = request.get_json()
         unit_type = data.get('unit_type')
 
-        return convert_units(ingredients, unit_type)
+        return convert_units(ingredients, unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion)
 
 @api.route('/calculate-serving-ingredients')
 class MultiplyServingSize(Resource):
@@ -432,6 +423,8 @@ class MultiplyServingSize(Resource):
         global requested_serving_size
         global ingredients
         global unit_type
+        global original_unit_type
+        global ingredients_pre_conversion
 
         data = request.get_json()
         requested_serving_size = float(data.get('serving_size'))
@@ -440,13 +433,13 @@ class MultiplyServingSize(Resource):
             return None
         
         # clean up the servings numbers
-        servings = float(re.search("\d+", str(servings))[0])
+        servings = float(re.search("\\d+", str(servings))[0])
 
         if original_unit_type == unit_type:
-            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion))
+            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion), servings, requested_serving_size)
         else:
-            temp = convert_units(deepcopy(ingredients_pre_conversion), unit_type)
-            ingredients = calculate_servings(temp)
+            temp = convert_units(deepcopy(ingredients_pre_conversion), unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion)
+            ingredients = calculate_servings(temp, servings, requested_serving_size)
         return ingredients
 
 @api.route('/scrape-recipe-steps')
@@ -460,6 +453,7 @@ class ScrapeRecipeSteps(Resource):
         global ingredients
         global servings
         global original_unit_type
+        global ingredients_pre_conversion
 
         data = request.get_json()
         recipe_url = data.get('recipe_url')
@@ -475,26 +469,20 @@ class ScrapeRecipeSteps(Resource):
         recipe_name = postprocess_text(extract_recipe_name(soup, recipe_url))
         recipe_steps = postprocess_list(extract_recipe_steps(soup))
         ingredients = postprocess_list(extract_ingredients(soup))
-        ingredients = extract_units(ingredients)
+        ingredients, original_unit_type, ingredients_pre_conversion = extract_units(ingredients)
         servings = get_serving_size(soup)
         
-        # with error handling
+        # With error handling
         # if recipe_name and recipe_steps and ingredients and servings:
         #     return {'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
         # else:
         #     return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
 
-        # without error handling for testing/development
+        # Without error handling for testing/development
         return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)
-
-
-# Current limitations
-# Too many nested divs due to the UI design = https://www.sidechef.com/recipes/6106/chicken_chop_with_black_pepper_sauce/
-# Doesn't support quantity ranges using the word "to" like "1 to 2" = https://www.simplyrecipes.com/recipes/spaghetti_alla_carbonara/
-# All unit conversions are a proof of concept based on the density of water and flour - yet to implement more accurate conversions based on the specific ingredient
 
 """
 We ❤ Recipes (and Code), but sometimes they don't see eye to eye!

@@ -7,7 +7,7 @@
     <div v-if="isLoggedIn">
       <p>DEBUG: Login successful</p>
     </div>
-    <LoginComponent v-else @logged-in="fetchProtectedData" />
+    <LoginComponent />
     <div v-if="isLoggedIn">
       <input type="text" v-model="recipeUrl" placeholder="Enter recipe URL" />
       <button @click="submitRecipeUrl">Submit Recipe URL</button>
@@ -57,27 +57,14 @@ export default {
       recipeResponse: null,
       unitType: null,
       servingSize: null,
-      servingSizeInput: null
+      servingSizeInput: null,
+      token: null
     };
   },
   methods: {
-    async fetchProtectedData() {
-      try {
-        const token = localStorage.getItem('jwt_token');
-        const response = await axios.get('http://127.0.0.1:5000/test-protected', {
-          headers: {
-            Authorization: `${token}`
-          }
-        });
-        this.responseData = response.data.message;
-      } catch (error) {
-        console.error('Error fetching data:', error.response ? error.response.data : error.message);
-      }
-    },
     async submitRecipeUrl() {
       try {
-        const token = localStorage.getItem('jwt_token');
-        if (!token) {
+        if (!this.isLoggedIn) {
           console.error('No token found');
           return;
         }
@@ -85,7 +72,7 @@ export default {
           recipe_url: this.recipeUrl
         }, {
           headers: {
-            Authorization: `${token}`
+            Authorization: `${this.token}`
           }
         });
         this.recipeResponse = response.data;
@@ -99,8 +86,7 @@ export default {
     },
     async convertUnits() {
       try {
-        const token = localStorage.getItem('jwt_token');
-        if (!token) {
+        if (!this.isLoggedIn) {
           console.error('No token found');
           return;
         }
@@ -110,7 +96,7 @@ export default {
           ingredients: this.recipeResponse.ingredients
         }, {
           headers: {
-            Authorization: `${token}`
+            Authorization: `${this.token}`
           }
         });
         this.recipeResponse.ingredients = response.data;
@@ -122,8 +108,7 @@ export default {
     },
     async updateServingSize() {
       try {
-        const token = localStorage.getItem('jwt_token');
-        if (!token) {
+        if (!this.isLoggedIn) {
           console.error('No token found');
           return;
         }
@@ -131,7 +116,7 @@ export default {
           serving_size: this.servingSizeInput
         }, {
           headers: {
-            Authorization: `${token}`
+            Authorization: `${this.token}`
           }
         });
         // Update ingredients based on API response
@@ -145,6 +130,7 @@ export default {
   },
   mounted() {
     const token = localStorage.getItem('jwt_token');
+    this.token = token;
     if (token) {
       this.isLoggedIn = true;
     }

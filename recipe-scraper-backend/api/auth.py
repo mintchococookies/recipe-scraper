@@ -4,6 +4,8 @@ import jwt
 import datetime
 import os
 from functools import wraps
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key') # for production
@@ -13,6 +15,22 @@ authorizations = {
         'type': 'basic'
     }
 }
+
+# ## LOGGING ######################################
+# # Basic logging configuration
+# logging.basicConfig(level=logging.INFO,
+#                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+
+# # Create a RotatingFileHandler
+# handler = RotatingFileHandler('api.log', maxBytes=2000, backupCount=10)
+# handler.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+# handler.setFormatter(formatter)
+
+# # Add the RotatingFileHandler to the root logger
+# logging.getLogger().addHandler(handler)
+# ##################################################
+
 api = Api(app, authorizations=authorizations)
 
 # Define a model for the login request body (for Swagger UI clarity)
@@ -38,7 +56,7 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization', None)
-        print(f"Received Authorization header: {token}")
+        # logging.info(f"Received Authorization header: {token}")
         if not token:
             return {'message': 'Missing authorization token'}, 401
 
