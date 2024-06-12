@@ -469,17 +469,18 @@ class ScrapeRecipeSteps(Resource):
         recipe_name = postprocess_text(extract_recipe_name(soup, recipe_url))
         recipe_steps = postprocess_list(extract_recipe_steps(soup))
         ingredients = postprocess_list(extract_ingredients(soup))
-        ingredients, original_unit_type, ingredients_pre_conversion = extract_units(ingredients)
-        servings = get_serving_size(soup)
+        if ingredients:
+            ingredients, original_unit_type, ingredients_pre_conversion = extract_units(ingredients)
+            servings = get_serving_size(soup)
         
         # With error handling
-        # if recipe_name and recipe_steps and ingredients and servings:
-        #     return {'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
-        # else:
-        #     return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
+        if recipe_name and recipe_steps and ingredients and servings:
+            return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
+        else:
+            return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
 
         # Without error handling for testing/development
-        return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
+        # return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
 
 if __name__ == '__main__':
     app.run(debug=True, threaded=True)

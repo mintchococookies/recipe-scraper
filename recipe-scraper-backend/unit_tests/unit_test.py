@@ -252,8 +252,7 @@ def test_scrape_recipe_steps(client):
             ["4", "oz", "cream cheese, room temperature"],
             [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
         ],
-        "servings": "10",
-        "original_unit_type": "metric"
+        "servings": "10"
     }
 
     actual_response = replace_non_breaking_spaces(response.json)

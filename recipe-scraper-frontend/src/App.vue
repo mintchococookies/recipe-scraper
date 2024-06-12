@@ -11,7 +11,11 @@
     <div v-if="isLoggedIn">
       <input type="text" v-model="recipeUrl" placeholder="Enter recipe URL" />
       <button @click="submitRecipeUrl">Submit Recipe URL</button>
-      <div v-if="recipeResponse">
+      <!-- Display error message if present -->
+      <div v-if="recipeResponse && recipeResponse.error" class="error-message">
+        <p>{{ recipeResponse.error }}</p>
+      </div>
+      <div v-else-if="recipeResponse">
         <div class="recipe-name">
           <h2>{{ recipeResponse.recipe_name }}</h2>
         </div>
@@ -37,6 +41,31 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <p>We ❤ Recipes (and Code), but sometimes they don't see eye to eye!</p>
+      <p>The web is a wonderful (and sometimes wacky) place, and every website has its own unique way of presenting
+        things. We've done our best to train our recipe detectives to handle all sorts of situations, but occasionally
+        they might encounter a website that throws them a curveball.</p>
+      <p>If you ever find a recipe that doesn't seem quite right, don't be shy! Just send us a quick email at
+        xxx@gmail.com and we'll be happy to put on our detective hats and see if we can fix it.</p>
+      <p>Thanks for your understanding, and happy cooking! ‍‍</p>
+    </div>
+    <!-- Current Limitations -->
+    <div class="limitations">
+      <h3>Current Limitations:</h3>
+      <ul>
+        <li>All unit conversions involving cups are based on the density of water (for liquids) and flour (for solids) as
+          a proof of concept. More accurate conversions based on specific ingredients have yet to be implemented. It's
+          important to consider the density of ingredients when converting units, as the conversion
+          factor may vary
+          depending on the type of ingredient being measured. For instance, while the metric system suggests 250 grams in
+          1 cup, this value can differ based on the density of the ingredient. In the meantime, you can find a
+          comprehensive list of conversions for different ingredients from the web: <a
+            href="https://www.allrecipes.com/article/cup-to-gram-conversions/">https://www.allrecipes.com/article/cup-to-gram-conversions/</a>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
