@@ -280,11 +280,18 @@ def standardize_units(ingredients):
 def extract_units(ingredients):
     parsed_ingredients = []
     for ingredient in ingredients:
-        match = re.match(r'^((?:\d+\s*)?(?:\d*½|\d*¼|\d*[¾¾]|\d*⅛|\d*⅔|\d+\s*[/–-]\s*\d+)?[\s\d/–-]*)?[\s]*(?:([a-zA-Z]+)\b)?[\s]*(.*)$', ingredient)
+        match = re.match(r'^((?:\d+\s*)?(?:\d*½|\d*¼|\d*[¾¾]|\d*⅛|\d*⅔|\d+\s*[/–-]|to\s*\d+)?[\s\d/–-]*)?[\s]*(?:([a-zA-Z]+)\b)?[\s]*(.*)$', ingredient)
         quantity, unit, name = match.groups()
-        
-        quantity = quantity.strip() if quantity else None
-        quantity = quantity.replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4").replace("⅛", "1/8").replace("⅔", "2/3") if quantity else None
+
+        if '-' in str(quantity):
+            quantity = str(quantity).replace(" ", "")
+        elif 'to' in str(quantity):
+            quantity = str(quantity).replace(" ", "")
+            quantity = quantity.split('to')
+            quantity = '-'.join(quantity)
+        else:
+            quantity = quantity.strip() if quantity else None
+            quantity = quantity.replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4").replace("⅛", "1/8").replace("⅔", "2/3") if quantity else None
         
         if unit:
             modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
@@ -313,19 +320,54 @@ def extract_units(ingredients):
 def calculate_servings(ingredients, servings, requested_serving_size):
     for ingredient in ingredients:
         quantity = ingredient[0]
-        if quantity:
-            quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
-            quantity_parts = quantity.split(" ")
-            quantity = sum(float(num_str) for num_str in quantity_parts)
-            base_quantity = float(quantity) / float(servings)
-            new_quantity = round((base_quantity * requested_serving_size), 3)
-            new_quantity = str(new_quantity).replace("0.5", "1/2").replace("0.25", "1/4").replace("0.75", "3/4").replace("0.125", "1/8").replace("0.66", "2/3")
-            new_quantity = new_quantity.replace(".5", " 1/2").replace(".25", " 1/4").replace(".75", " 3/4").replace(".125", " 1/8").replace(".66", " 2/3")
-            
-            ingredient[0] = new_quantity[:-2] if new_quantity.endswith(".0") else new_quantity
+        if not quantity:
+            continue
+
+        if '-' in str(quantity):
+            quantity = str(quantity).replace(" ", "")
+            quantity = quantity.split('-')
+        elif 'to' in str(quantity):
+            quantity = str(quantity).replace(" ", "")
+            quantity = quantity.split('to')
+
+        def convert_fraction(q):
+            q = str(q).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
+            return q
+
+        def adjust_quantity(q):
+            q = sum(float(num_str) for num_str in q.split(" "))
+            base_quantity = q / float(servings)
+            temp_quantity = round((base_quantity * requested_serving_size), 3)
+            temp_quantity = str(temp_quantity).replace("0.5", "1/2").replace("0.25", "1/4").replace("0.75", "3/4").replace("0.125", "1/8").replace("0.66", "2/3")
+            temp_quantity = temp_quantity.replace(".5", " 1/2").replace(".25", " 1/4").replace(".75", " 3/4").replace(".125", " 1/8").replace(".66", " 2/3")
+            return temp_quantity[:-2] if temp_quantity.endswith(".0") else temp_quantity
+
+        if isinstance(quantity, list):
+            new_quantity = [adjust_quantity(convert_fraction(q)) for q in quantity]
+            ingredient[0] = '-'.join(new_quantity)
+        else:
+            ingredient[0] = adjust_quantity(convert_fraction(quantity))
+
     return ingredients
 
 def convert_units(ingredients, unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion):
+    def convert_large_vals(converted_unit, converted_q):
+        # if the cup value is super small, change to teaspoons (1 cup = 48 teaspoons)
+        # if teaspoons is too much, change to tablespoons
+        if converted_unit == "cups" and converted_q < 0.1:
+            converted_unit = "tsp"
+            converted_q *= 48
+
+            if converted_q >= 3:
+                converted_unit = "tbsp"
+                converted_q /= 3 # 1 tablespoon = 3 teaspoons
+
+        # if oz is greater than 32, change to pounds (1lb = 16oz)
+        if converted_unit == "oz" and converted_q >= 32:
+            converted_q /= 16 
+            converted_unit = "lb"
+        return converted_unit, converted_q
+
     # check if ingredients is populated or not first
     if not ingredients:
         return None
@@ -347,10 +389,20 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
         for ingredient in ingredients:
             convert_to = None
             quantity = ingredient[0]
-            if quantity: # convert fractions like 3 1/4 to a whole number i.e. 3.25
-                quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
-                quantity_parts = quantity.split(" ")
-                quantity = sum(float(num_str) for num_str in quantity_parts)
+            if quantity: 
+                # handle cases where the quantity is a range
+                if '-' in str(quantity):
+                    quantity = quantity.replace(" ", "")
+                    quantity = quantity.split('-')
+                elif 'to' in str(quantity):
+                    quantity = quantity.replace(" ", "")
+                    quantity = quantity.split('to')
+                else:
+                    # convert fractions like 3 1/4 to a whole number i.e. 3.25
+                    quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
+                    quantity_parts = quantity.split(" ")
+                    quantity = sum(float(num_str) for num_str in quantity_parts)
+                    
             unit = ingredient[1]
             name = ingredient[2]
 
@@ -364,26 +416,23 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
                 # convert grams of flour to cups of flour and not oz of flour
                 if any(solid in name for solid in solids):
                     convert_to = "cups" if unit == "g" else "oz"
-                
                 converted_unit = convert_to if convert_to else [key for key, value in conversion_dict[unit].items()][0]
-                converted_quantity = float(quantity) * conversion_dict[unit][converted_unit]
                 
-                # if the cup value is super small, change to teaspoons (1 cup = 48 teaspoons)
-                # if teaspoons is too much, change to tablespoons
-                if converted_unit == "cups" and converted_quantity < 0.1:
-                    converted_unit = "tsp"
-                    converted_quantity *= 48
-
-                    if converted_quantity >= 3:
-                        converted_unit = "tbsp"
-                        converted_quantity /= 3 # 1 tablespoon = 3 teaspoons
-
-                # if oz is greater than 32, change to pounds (1lb = 16oz)
-                if converted_unit == "oz" and converted_quantity >= 32:
-                    converted_quantity /= 16 
-                    converted_unit = "lb"
-            
-                ingredient[0] = round(converted_quantity, 2)
+                # handle cases where the quantity is a range
+                if isinstance(quantity, list):
+                    converted_quantities = []
+                    for q in quantity:
+                        converted_q = float(q) * conversion_dict[unit][converted_unit]
+                        converted_unit, converted_q = convert_large_vals(converted_unit, converted_q)
+                        temp = round(converted_q, 2)
+                        converted_quantities.append(str(temp))
+                    converted_quantity = '-'.join(converted_quantities)
+                    ingredient[0] = converted_quantity
+                # handle normal single number quantities
+                else:
+                    converted_quantity = float(quantity) * conversion_dict[unit][converted_unit]
+                    converted_unit, converted_quantity = convert_large_vals(converted_unit, converted_quantity)
+                    ingredient[0] = round(converted_quantity, 2)
                 ingredient[1] = converted_unit
         logging.info("DEBUG: Conversion method 3")
 

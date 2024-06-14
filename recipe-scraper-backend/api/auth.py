@@ -6,6 +6,9 @@ import os
 from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key') # for production

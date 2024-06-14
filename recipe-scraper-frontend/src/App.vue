@@ -106,7 +106,7 @@ body {
 main {
   flex: 1;
   margin: 0 auto;
-  padding-top: 3rem;
+  padding-top: 2rem;
   padding-bottom: 2rem;
   width: 50%;
 }
