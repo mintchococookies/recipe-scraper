@@ -3,6 +3,7 @@ from api.app import app
 from bs4 import BeautifulSoup
 from api.app import extract_recipe_steps_manual, extract_recipe_steps_labelled, extract_ingredients, extract_recipe_name, get_serving_size, postprocess_list, postprocess_text, standardize_units, extract_units, calculate_servings, convert_units
 from api.auth import verify_credentials
+import os
 
 @pytest.fixture
 def client():
@@ -135,20 +136,20 @@ def test_calculate_servings():
     requested_serving_size = 8
 
     input_ingredients = [
-        ["5", "lb", "potatoes(I use half Yukon Gold, half Russet potatoes)"],
+        ["5 to 6", "lb", "potatoes(I use half Yukon Gold, half Russet potatoes)"],
         ["2", None, "large cloves garlic, minced"],
         [None, None, "fine sea salt"],
         ["6", "tbsp", "butter"],
-        ["1", "cup", "whole milk"],
+        ["1 1/2", "cup", "whole milk"],
         ["4", "oz", "cream cheese, room temperature"],
         [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
     ]
     expected_result = [
-        ["10", "lb", "potatoes(I use half Yukon Gold, half Russet potatoes)"],
+        ["10-12", "lb", "potatoes(I use half Yukon Gold, half Russet potatoes)"],
         ["4", None, "large cloves garlic, minced"],
         [None, None, "fine sea salt"],
         ["12", "tbsp", "butter"],
-        ["2", "cup", "whole milk"],
+        ["3", "cup", "whole milk"],
         ["8", "oz", "cream cheese, room temperature"],
         [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
     ]
@@ -162,7 +163,7 @@ def test_convert_units():
         ["2", None, "large cloves garlic, minced"],
         [None, None, "fine sea salt"],
         ["6", "tbsp", "butter"],
-        ["1", "cup", "whole milk"],
+        ["1 to 2", "cup", "whole milk"],
         ["4", "oz", "cream cheese, room temperature"],
         [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
     ]
@@ -172,7 +173,7 @@ def test_convert_units():
         ["2", None, "large cloves garlic, minced"],
         [None, None, "fine sea salt"],
         ["6", "tbsp", "butter"],
-        [236.59, "ml", "whole milk"],
+        ["236.59-473.18", "ml", "whole milk"],
         [113.4, "g", "cream cheese, room temperature"],
         [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
     ]
@@ -204,14 +205,18 @@ global token
 token = None
 
 def test_verify_credentials():
-    assert verify_credentials('user', 'pw') == True
+    expected_username = os.getenv('RECIPE_SCRAPER_USERNAME')
+    expected_password = os.getenv('RECIPE_SCRAPER_PASSWORD')
+    assert expected_username is not None
+    assert expected_password is not None
+    assert verify_credentials(expected_username, expected_password) == True
     assert verify_credentials('invalid_user', 'invalid_pw') == False
 
 def test_user_login(client):
     global token
     login_data = {
-        "username": "user",
-        "password": "pw"
+        "username": os.getenv('RECIPE_SCRAPER_USERNAME'),
+        "password": os.getenv('RECIPE_SCRAPER_PASSWORD')
     }
 
     response = client.post('/login', json=login_data)
@@ -252,7 +257,8 @@ def test_scrape_recipe_steps(client):
             ["4", "oz", "cream cheese, room temperature"],
             [None, None, "toppings : chopped fresh chives or green onions, freshly-cracked black pepper"]
         ],
-        "servings": "10"
+        "servings": "10",
+        "original_unit_type": "metric"
     }
 
     actual_response = replace_non_breaking_spaces(response.json)
@@ -307,3 +313,6 @@ def test_multiply_serving_size(client):
 
     assert response.status_code == 200
     assert actual_response == expected_response
+
+
+# python -m pytest -vv
