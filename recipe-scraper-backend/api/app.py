@@ -9,8 +9,7 @@ from flask_cors import CORS
 from auth import app, api, token_required
 import logging
 
-#CORS(app) # Change to this for production
-CORS(app, origins=["*"])  # Allow all origins for development (not recommended for production)
+CORS(app, origins=["*"])
 
 # Define headers to simulate website access via browsers
 headers = {
@@ -475,15 +474,15 @@ class ScrapeRecipeSteps(Resource):
         
         # With error handling
         if recipe_name and recipe_steps and ingredients and servings:
-            return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
+            return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
         else:
             return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
 
         # Without error handling for testing/development
-        # return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings}, 200
+        # return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
 
 """
 We ❤ Recipes (and Code), but sometimes they don't see eye to eye!

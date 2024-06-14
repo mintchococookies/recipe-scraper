@@ -11,7 +11,8 @@ export default {
     name: 'LoginComponent',
     data() {
         return {
-            isLoggedIn: false
+            isLoggedIn: false,
+            apiUrl: process.env.VUE_APP_API_URL
         };
     },
     async mounted() {
@@ -20,9 +21,9 @@ export default {
     methods: {
         async login() {
             try {
-                const response = await axios.post('http://127.0.0.1:5000/login', {
-                    username: 'user',
-                    password: 'pw'
+                const response = await axios.post(`${this.apiUrl}/login`, {
+                    username: process.env.VUE_APP_USERNAME,
+                    password: process.env.VUE_APP_PASSWORD
                 });
                 const token = response.data.token;
                 localStorage.setItem('jwt_token', token);

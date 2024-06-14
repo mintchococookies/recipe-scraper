@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key') # for production
-app.config['SECRET_KEY'] = 'your_secret_key'  # for testing/dev
+app.config['SECRET_KEY'] = os.getenv('RECIPE_SCRAPER_SECRET_KEY', 'wheeee')  # for testing/dev
 authorizations = {
     'basicAuth': {
         'type': 'basic'
@@ -48,7 +48,9 @@ def generate_token(username):
 
 def verify_credentials(username, password):
     # Replace with actual authentication mechanism (don't store passwords in plain text)
-    if username == 'user' and password == 'pw':
+    expected_username = os.getenv('RECIPE_SCRAPER_USERNAME')
+    expected_password = os.getenv('RECIPE_SCRAPER_PASSWORD')
+    if username == expected_username and password == expected_password:
         return True
     return False
 
