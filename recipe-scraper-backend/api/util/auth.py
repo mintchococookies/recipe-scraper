@@ -75,7 +75,7 @@ def token_required(f):
 
 @api.route('/login')
 class UserLogin(Resource):
-    @api.expect(login_model)  # Optional for Swagger UI clarity
+    @api.expect(login_model)
     def post(self):
         data = request.get_json()
         username = data.get('username')
