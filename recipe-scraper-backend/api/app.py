@@ -549,5 +549,11 @@ class ScrapeRecipeSteps(Resource):
         else:
             return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
 
+@api.route('/health-check')
+class HealthCheck(Resource):
+    @api.doc(description="Health check endpoint")
+    def head(self):
+        return '', 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
