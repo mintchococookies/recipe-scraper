@@ -1,7 +1,11 @@
 # Define headers to simulate website access via browsers
 headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
-        }
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
+}
+
+teaspoons_per_cup = 48
+teaspoons_per_tablespoon = 3
+ounces_per_pound = 16
 
 # Define some cooking action words to help locate the recipe in some websites where the recipe isn't labelled
 cooking_action_words = [
@@ -14,6 +18,14 @@ cooking_action_words = [
     'dry', 'wait', 'cool', 'season', 'start', 'cook'
 ]
 
+liquids = [
+    "water", "oil", "milk", "honey"
+]
+
+solids = [
+    "flour", "pepper", "salt"
+]
+
 common_units = [
     "grams", "gram", "milliliters", "milliliter", "centimeter", "centimeter", "kilograms", "kilogram", 
     "cups", "cup", "tablespoons", "tablespoon", "teaspoons", "teaspoon",
@@ -21,22 +33,43 @@ common_units = [
     "cloves", "clove", "can", "tin", "jar", "g", "kg", "litre", "litres", "millilitres", "millilitre"
 ]
 
+quantity_separators = ['-', 'to', '–']
+
+unit_standardization_mapping = {
+    'g': 'g', 'gram': 'grams', 'g': 'grams', 'lb': 'lb', 'pound': 'lb', 'pounds': 'lb', 'kg': 'kg', 'kilogram': 'kg', 
+    'kilograms': 'kg', 'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz', 'mg': 'mg', 'milligram': 'mg', 'milligrams': 'mg', 
+    'l': 'l', 'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'ml': 'ml', 'milliliter': 'ml', 'milliliters': 'ml', 'tsp': 'tsp', 
+    'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tbsp': 'tbsp', 'tablespoon': 'tbsp', 'tablespoons': 'tbsp'
+}
+
+# Unit conversion constants
 to_si_conversion = {
-'cups': {'ml': 236.588, 'g': 125.39},
-'cup': {'ml': 236.588, 'g': 125.39},
-'lb': {'g': 453.592},
-'oz': {'g': 28.3495}
+    'cups': {'ml': 236.588, 'g': 125.39},
+    'cup': {'ml': 236.588, 'g': 125.39},
+    'lb': {'g': 453.592},
+    'oz': {'g': 28.3495}
 } 
 
 to_metric_conversion = {
-'ml': {'cups': 0.00422675, 'cup': 0.00422675},
-'l': {'cups': 4.22675, 'cup': 4.22675},
-'g': {'oz': 0.03527396, 'cup': 0.007975, 'cups': 0.007975, 'lb': 1}
+    'ml': {'cups': 0.00422675, 'cup': 0.00422675},
+    'l': {'cups': 4.22675, 'cup': 4.22675},
+    'g': {'oz': 0.03527396, 'cup': 0.007975, 'cups': 0.007975, 'lb': 1}
 }
 
-liquids = ["water", "oil", "milk", "honey"]
-solids = ["flour", "pepper", "salt"]
-
+# Fraction conversions
+fraction_conversions = {
+    "½": "1/2",
+    "¼": "1/4",
+    "¾": "3/4",
+    "⅛": "1/8",
+    "⅔": "2/3",
+    "1/2": "0.5",
+    "1/4": "0.25",
+    "3/4": "0.75",
+    "1/8": "0.125",
+    "2/3": "0.667",
+    "1/3": "0.333"
+}
 
 
 """

@@ -252,11 +252,6 @@ def postprocess_text(txt):
     return txt.strip()
 
 def standardize_units(ingredients):
-    unit_mapping = {'g': 'g', 'gram': 'grams', 'g': 'grams', 'lb': 'lb', 'pound': 'lb', 'pounds': 'lb', 'kg': 'kg', 'kilogram': 'kg', 
-                    'kilograms': 'kg', 'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz', 'mg': 'mg', 'milligram': 'mg', 'milligrams': 'mg', 
-                    'l': 'l', 'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'ml': 'ml', 'milliliter': 'ml', 'milliliters': 'ml', 'tsp': 'tsp', 
-                    'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tbsp': 'tbsp', 'tablespoon': 'tbsp', 'tablespoons': 'tbsp'}
-    
     def clean_unit(unit):
         # Remove any trailing periods and extra spaces
         if unit:
@@ -266,8 +261,8 @@ def standardize_units(ingredients):
     
     for ingredient in ingredients:
         unit = clean_unit(ingredient[1])
-        if ingredient and unit in unit_mapping:
-            standardized_unit = unit_mapping[unit]
+        if ingredient and unit in unit_standardization_mapping:
+            standardized_unit = unit_standardization_mapping[unit]
             ingredient[1] = standardized_unit
         else:
             pass
@@ -289,7 +284,8 @@ def extract_units(ingredients):
             quantity = '-'.join(quantity)
         else:
             quantity = quantity.strip() if quantity else None
-            quantity = quantity.replace("½", "1/2").replace("¼", "1/4").replace("¾", "3/4").replace("⅛", "1/8").replace("⅔", "2/3") if quantity else None
+            for fraction, decimal in fraction_conversions.items():
+                quantity = str(quantity).replace(fraction, decimal) if quantity else None
         
         if unit:
             modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
@@ -323,23 +319,26 @@ def calculate_servings(ingredients, servings, requested_serving_size):
         if not quantity:
             continue
 
-        if '-' in str(quantity):
-            quantity = str(quantity).replace(" ", "")
-            quantity = quantity.split('-')
-        elif 'to' in str(quantity):
-            quantity = str(quantity).replace(" ", "")
-            quantity = quantity.split('to')
+        quantity = str(quantity).replace(" ", "")
+        for separator in quantity_separators:
+            if separator in quantity:
+                quantity = quantity.split(separator)
+                break
 
         def convert_fraction(q):
-            q = str(q).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667").replace("1/3", "0.333")
+            for unicode_fraction, decimal in fraction_conversions.items():
+                q = str(q).replace(unicode_fraction, decimal)
             return q
 
         def adjust_quantity(q):
             q = sum(float(num_str) for num_str in q.split(" "))
             base_quantity = q / float(servings)
             temp_quantity = round((base_quantity * requested_serving_size), 3)
-            temp_quantity = str(temp_quantity).replace("0.5", "1/2").replace("0.25", "1/4").replace("0.75", "3/4").replace("0.125", "1/8").replace("0.66", "2/3")
-            temp_quantity = temp_quantity.replace(".5", " 1/2").replace(".25", " 1/4").replace(".75", " 3/4").replace(".125", " 1/8").replace(".66", " 2/3")
+            temp_quantity = str(temp_quantity)
+            # Convert decimals to fractions using the fraction_conversions dictionary
+            for decimal, fraction in fraction_conversions.items():
+                if decimal.replace("0.", ".") in temp_quantity:
+                    temp_quantity = temp_quantity.replace(decimal.replace("0.", "."), " " + fraction)
             return temp_quantity[:-2] if temp_quantity.endswith(".0") else temp_quantity
 
         if isinstance(quantity, list):
@@ -356,15 +355,15 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
         # if teaspoons is too much, change to tablespoons
         if converted_unit == "cups" and converted_q < 0.1:
             converted_unit = "tsp"
-            converted_q *= 48
+            converted_q *= teaspoons_per_cup
 
             if converted_q >= 3:
                 converted_unit = "tbsp"
-                converted_q /= 3 # 1 tablespoon = 3 teaspoons
+                converted_q /= teaspoons_per_tablespoon # 1 tablespoon = 3 teaspoons
 
         # if oz is greater than 32, change to pounds (1lb = 16oz)
         if converted_unit == "oz" and converted_q >= 32:
-            converted_q /= 16 
+            converted_q /= ounces_per_pound 
             converted_unit = "lb"
         return converted_unit, converted_q
 
@@ -391,18 +390,15 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
             quantity = ingredient[0]
             if quantity: 
                 # handle cases where the quantity is a range
-                if '-' in str(quantity):
-                    quantity = quantity.replace(" ", "")
-                    quantity = quantity.split('-')
-                elif 'to' in str(quantity):
-                    quantity = quantity.replace(" ", "")
-                    quantity = quantity.split('to')
-                elif '–' in str(quantity):
-                    quantity = str(quantity).replace(" ", "")
-                    quantity = quantity.split('–') 
+                quantity = str(quantity).replace(" ", "")
+                for separator in quantity_separators:
+                    if separator in quantity:
+                        quantity = quantity.split(separator)
+                        break
                 else:
-                    # convert fractions like 3 1/4 to a whole number i.e. 3.25
-                    quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667").replace("1/3", "0.333")
+                    # convert fractions to decimals
+                    for fraction, decimal in fraction_conversions.items():
+                        quantity = str(quantity).replace(fraction, decimal)
                     quantity_parts = quantity.split(" ")
                     quantity = sum(float(num_str) for num_str in quantity_parts)
                     
