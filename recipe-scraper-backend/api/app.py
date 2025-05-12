@@ -1,10 +1,13 @@
 import re
 import requests
 import logging
+import json
+import os
+from dotenv import load_dotenv
 
 from bs4 import BeautifulSoup
 from copy import deepcopy
-from flask import Flask, request
+from flask import Flask, request, session
 from flask_cors import CORS
 from flask_restx import Api, Resource
 from urllib.parse import urlparse
@@ -19,22 +22,46 @@ CORS(app, origins=["*"])
 # Get models from util
 recipe_url_model, unit_type_model, serving_size_model = create_models(api)
 
-# Global variables
-global ingredients
-global servings 
-global ingredients_pre_conversion
-global converted
-global requested_serving_size
-global original_unit_type
-global unit_type
+class RecipeState:
+    def __init__(self):
+        self.ingredients = None
+        self.servings = None
+        self.ingredients_pre_conversion = None
+        self.converted = False
+        self.requested_serving_size = None
+        self.original_unit_type = None
+        self.unit_type = None
+    
+    def to_dict(self):
+        return {
+            'ingredients': self.ingredients,
+            'servings': self.servings,
+            'ingredients_pre_conversion': self.ingredients_pre_conversion,
+            'converted': self.converted,
+            'requested_serving_size': self.requested_serving_size,
+            'original_unit_type': self.original_unit_type,
+            'unit_type': self.unit_type
+        }
+    
+    def from_dict(self, data):
+        self.ingredients = data.get('ingredients')
+        self.servings = data.get('servings')
+        self.ingredients_pre_conversion = data.get('ingredients_pre_conversion')
+        self.converted = data.get('converted')
+        self.requested_serving_size = data.get('requested_serving_size')
+        self.original_unit_type = data.get('original_unit_type')
+        self.unit_type = data.get('unit_type')
 
-ingredients = None
-servings = None
-ingredients_pre_conversion = None
-converted = False
-requested_serving_size = None
-original_unit_type = None
-unit_type = None
+def get_recipe_state():
+    if 'recipe_state' not in session:
+        session['recipe_state'] = RecipeState().to_dict()
+    
+    recipe_state = RecipeState()
+    recipe_state.from_dict(session['recipe_state'])
+    return recipe_state
+
+def save_recipe_state(recipe_state):
+    session['recipe_state'] = recipe_state.to_dict()
 
 # Function to extract the recipe steps when there's some labelling (id/class) on the html elements that indicates its the recipe
 def extract_recipe_steps_labelled(soup):
@@ -405,17 +432,24 @@ class ConvertUnits(Resource):
     @api.expect(unit_type_model)
     @token_required
     def post(self, current_user):
-        global ingredients
-        global unit_type
-        global requested_serving_size
-        global servings
-        global original_unit_type
-        global ingredients_pre_conversion
-        
+        recipe_state = get_recipe_state()
         data = request.get_json()
-        unit_type = data.get('unit_type')
+        recipe_state.unit_type = data.get('unit_type')
 
-        return convert_units(ingredients, unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion)
+        result = convert_units(
+            recipe_state.ingredients, 
+            recipe_state.unit_type, 
+            recipe_state.requested_serving_size, 
+            recipe_state.servings, 
+            recipe_state.original_unit_type, 
+            recipe_state.ingredients_pre_conversion
+        )
+        
+        if result:
+            recipe_state.ingredients = result
+            save_recipe_state(recipe_state)
+        
+        return result
 
 @api.route('/calculate-serving-ingredients')
 class MultiplyServingSize(Resource):
@@ -425,28 +459,39 @@ class MultiplyServingSize(Resource):
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @token_required
     def post(self, current_user):
-        global servings
-        global requested_serving_size
-        global ingredients
-        global unit_type
-        global original_unit_type
-        global ingredients_pre_conversion
-
+        recipe_state = get_recipe_state()
         data = request.get_json()
-        requested_serving_size = float(data.get('serving_size'))
+        recipe_state.requested_serving_size = float(data.get('serving_size'))
 
-        if not servings:
+        if not recipe_state.servings:
             return None
         
         # clean up the servings numbers
-        servings = float(re.search("\\d+", str(servings))[0])
+        recipe_state.servings = float(re.search("\\d+", str(recipe_state.servings))[0])
 
-        if original_unit_type == unit_type:
-            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion), servings, requested_serving_size)
+        if recipe_state.original_unit_type == recipe_state.unit_type:
+            recipe_state.ingredients = calculate_servings(
+                deepcopy(recipe_state.ingredients_pre_conversion), 
+                recipe_state.servings, 
+                recipe_state.requested_serving_size
+            )
         else:
-            temp = convert_units(deepcopy(ingredients_pre_conversion), unit_type, requested_serving_size, servings, original_unit_type, ingredients_pre_conversion)
-            ingredients = calculate_servings(temp, servings, requested_serving_size)
-        return ingredients
+            temp = convert_units(
+                deepcopy(recipe_state.ingredients_pre_conversion), 
+                recipe_state.unit_type, 
+                recipe_state.requested_serving_size, 
+                recipe_state.servings, 
+                recipe_state.original_unit_type, 
+                recipe_state.ingredients_pre_conversion
+            )
+            recipe_state.ingredients = calculate_servings(
+                temp, 
+                recipe_state.servings, 
+                recipe_state.requested_serving_size
+            )
+        
+        save_recipe_state(recipe_state)
+        return recipe_state.ingredients
 
 @api.route('/scrape-recipe-steps')
 class ScrapeRecipeSteps(Resource):
@@ -456,11 +501,7 @@ class ScrapeRecipeSteps(Resource):
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @token_required
     def post(self, current_user):
-        global ingredients
-        global servings
-        global original_unit_type
-        global ingredients_pre_conversion
-
+        recipe_state = get_recipe_state()
         data = request.get_json()
         recipe_url = data.get('recipe_url')
         
@@ -474,19 +515,25 @@ class ScrapeRecipeSteps(Resource):
 
         recipe_name = postprocess_text(extract_recipe_name(soup, recipe_url))
         recipe_steps = postprocess_list(extract_recipe_steps(soup))
-        ingredients = postprocess_list(extract_ingredients(soup))
-        if ingredients:
-            ingredients, original_unit_type, ingredients_pre_conversion = extract_units(ingredients)
-            servings = get_serving_size(soup)
+        recipe_state.ingredients = postprocess_list(extract_ingredients(soup))
+        if recipe_state.ingredients:
+            recipe_state.ingredients, recipe_state.original_unit_type, recipe_state.ingredients_pre_conversion = extract_units(recipe_state.ingredients)
+            recipe_state.servings = get_serving_size(soup)
+        
+        save_recipe_state(recipe_state)
         
         # With error handling
-        if recipe_name and recipe_steps and ingredients and servings:
-            return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
+        if recipe_name and recipe_steps and recipe_state.ingredients and recipe_state.servings:
+            return {
+                'recipe_url': recipe_url, 
+                'recipe_name': recipe_name, 
+                'recipe_steps': recipe_steps, 
+                'ingredients': recipe_state.ingredients, 
+                'servings': recipe_state.servings, 
+                'original_unit_type': recipe_state.original_unit_type
+            }, 200
         else:
             return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
-
-        # Without error handling for testing/development
-        # return {'recipe_url': recipe_url, 'recipe_name': recipe_name, 'recipe_steps': recipe_steps, 'ingredients': ingredients, 'servings': servings, 'original_unit_type': original_unit_type}, 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
