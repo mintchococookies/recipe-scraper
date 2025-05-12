@@ -3,10 +3,12 @@
     <LoginComponent />
     <main>
       <h1>&#129386; Recipe Scraper</h1>
+      <div id="input-div">
+        <input type="text" v-model="recipeUrl" placeholder="Paste recipe URL" />
+        <button id="submit-button" :disabled="loading" @click="submitRecipeUrl">{{ loading ? 'Loading..' : 'Search'
+        }}</button>
+      </div>
       <div v-if="isLoggedIn">
-        <div id="input-div"><input type="text" v-model="recipeUrl" placeholder="Paste recipe URL" />
-          <button id="submit-button" @click="submitRecipeUrl">Search</button>
-        </div>
         <!-- Display error message if api returns error -->
         <div v-if="recipeResponse && recipeResponse.error" class="error-message">
           <p>{{ recipeResponse.error }}</p>
@@ -46,6 +48,11 @@
           <div id="print-button-div"><button @click="printPage">Print Recipe</button></div>
         </div>
       </div>
+      <p id="refresh-disclaimer">
+        <i>The app's API is hosted on a free deployment server which may experience cold starts. Please refresh the
+          page if
+          nothing happens. Thank you for your understanding!</i>
+      </p>
       <div class="bottom-stuff">
         <div class="disclaimer">
           <h2>We ❤ Recipes (and code), but sometimes they don't see eye to eye! 🧐</h2>
@@ -74,15 +81,24 @@
           </ul>
         </div>
       </div>
+
     </main>
     <div class="footer">
-      <p>Developed and designed by Lilian using Flask, BeautifulSoup & Vue js | 2024</p>
+      <p>© Lilian 2024 | Created with Flask, BeautifulSoup & Vue JS </p>
     </div>
   </div>
 </template>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Poppins:wght@500;700&display=swap');
+
+#refresh-disclaimer {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  font-size: 80%;
+  margin: 0 auto;
+  text-align: center;
+}
 
 #app {
   display: flex;
@@ -208,6 +224,11 @@ button {
   font-size: 15px;
   text-decoration: none;
   height: 100%;
+  transition: background-color 0.4s ease;
+}
+
+button:active {
+  background-color: #afeeee;
 }
 
 .part-heading {
@@ -231,6 +252,16 @@ button {
 
 #submit-button {
   width: 20%;
+}
+
+#servings-button,
+#convert-button {
+  transition: background-color 0.3s ease;
+}
+
+#servings-button:active,
+#convert-button:active {
+  background-color: #ccc;
 }
 
 .disclaimer {
@@ -402,7 +433,8 @@ export default {
       servingSize: null,
       servingSizeInput: null,
       token: null,
-      apiUrl: process.env.VUE_APP_API_URL
+      apiUrl: process.env.VUE_APP_API_URL,
+      loading: false,
     };
   },
   methods: {
@@ -412,19 +444,30 @@ export default {
           console.error('No token found');
           return;
         }
+
+        // Set loading to true to show loading indicator and change button text
+        this.loading = true;
+
         const response = await axios.post(`${this.apiUrl}/scrape-recipe-steps`, {
           recipe_url: this.recipeUrl
         }, {
           headers: {
-            Authorization: `${this.token}`
+            Authorization: this.token
           }
         });
+
+        // Assign response to recipeResponse to display recipe details
         this.recipeResponse = response.data;
         this.unitType = this.recipeResponse.original_unit_type;
-        this.servingSize = this.recipeResponse.servings;
         this.servingSizeInput = parseInt(this.recipeResponse.servings);
+
       } catch (error) {
         console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
+        // Set error message in recipeResponse to display error
+        this.recipeResponse = { error: 'Please enter a valid URL.' };
+      } finally {
+        // Set loading back to false to hide loading indicator and restore button text
+        this.loading = false;
       }
     },
     async convertUnits() {
