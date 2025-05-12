@@ -1,33 +1,27 @@
-from flask import Flask, request
-from flask_restx import Api, Resource, fields
-import requests
-from bs4 import BeautifulSoup
 import re
-from urllib.parse import urlparse
-from copy import deepcopy
-from flask_cors import CORS
-from auth import app, api, token_required
+import requests
 import logging
 
+from bs4 import BeautifulSoup
+from copy import deepcopy
+from flask import Flask, request
+from flask_cors import CORS
+from flask_restx import Api, Resource
+from urllib.parse import urlparse
+
+# Local imports
+from auth import app, api, token_required
+from util.model_helper import create_models
+
 CORS(app, origins=["*"])
+
+# Get models from util
+recipe_url_model, unit_type_model, serving_size_model = create_models(api)
 
 # Define headers to simulate website access via browsers
 headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
         }
-
-# Define models for the input payloads
-recipe_url_model = api.model('RecipeURL', {
-    'recipe_url': fields.String(required=True, description='URL of the recipe')
-})
-
-unit_type_model = api.model('UnitType', {
-    'unit_type': fields.String(required=True, description='Either "si" or "metric" ')
-})
-
-serving_size_model = api.model('ServingSize', {
-    'serving_size': fields.String(required=True, description='Numeric value')
-})
 
 # Define some cooking action words to help locate the recipe in some websites where the recipe isn't labelled
 cooking_action_words = [
