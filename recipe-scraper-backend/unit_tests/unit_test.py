@@ -1,9 +1,13 @@
 import pytest
-from api.app import app
-from bs4 import BeautifulSoup
-from api.app import extract_recipe_steps_manual, extract_recipe_steps_labelled, extract_ingredients, extract_recipe_name, get_serving_size, postprocess_list, postprocess_text, standardize_units, extract_units, calculate_servings, convert_units
-from api.auth import verify_credentials
+import sys
 import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app import app
+from bs4 import BeautifulSoup
+from app import extract_recipe_steps_manual, extract_recipe_steps_labelled, extract_ingredients, extract_recipe_name, get_serving_size, postprocess_list, postprocess_text, standardize_units, extract_units, calculate_servings, convert_units
+from util.auth import verify_credentials
 
 @pytest.fixture
 def client():
@@ -243,7 +247,7 @@ def test_scrape_recipe_steps(client):
             "Boil the potatoes.Once all of your potatoes are cut, be sure that there is enough cold water in the pan so that the water line sits about 1 inch above the potatoes.  Stir the garlic and 1 tablespoon sea salt into the water.  Then turn the heat to high and cook until the water comes to a boil.  Reduce heat to medium-high (or whatever temperature is needed to maintain the boil) and continue cooking for about 10-12 minutes, or until a knife inserted in the middle of a potato goes in easily with almost no resistance.  Carefully drain out all of the water.",
             "Prepare your melted butter mixture.Meanwhile, as the potatoes are boiling, heat the butter, milk and an additional 2 teaspoons of sea salt together either in a small saucepan or in the microwave until the butter isjustmelted.  (You want to avoid boiling the milk.)  Set aside until ready to use.",
             "Pan-dry the potatoes.After draining the water, immediately return the potatoes to the hot stockpot, place it back on the hot burner, and turn the heat down to low.  Using two oven mitts, carefully hold the handles on the stockpot and shake it gently on the burner for about 1 minute to help cook off some of the remaining steam within the potatoes.  Remove the stockpot entirely from the heat and set it on a flat, heatproof surface.",
-            "Mash the potatoes.Using your preferred kind of potato masher (I recommendthis onein general, orthis onefor extra-smooth), mash the potatoes to your desired consistency.",
+            "Mash the potatoes.Using your preferred kind of potato masher (I recommendthis masherin general, orthis masherif you prefer extra-smooth), mash the potatoes to your desired consistency.",
             "Stir everything together.Then pour half of the melted butter mixture over the potatoes, and fold it in with a wooden spoon or spatula until potatoes have soaked up the liquid.  Repeat with the remaining butter, and then again with the cream cheese, folding in each addition in untiljustcombined to avoid over-mixing.  (Feel free to add in more warm milk to reach your desired consistency, if needed.)",
             "Taste and season.One final time, taste the potatoes and season with extra salt if needed.",
             "Serve warm.Then serve warm, garnished withgravyor any extra toppings that you might like, and enjoy!"
@@ -268,6 +272,15 @@ def test_scrape_recipe_steps(client):
 
 def test_convert_recipe_units(client):
     global token
+    # First set up the recipe state
+    recipe_data = {
+        "recipe_url": "https://www.gimmesomeoven.com/best-mashed-potatoes-recipe/"
+    }
+    client.post('/scrape-recipe-steps',          
+                headers={"Authorization": f"{token}"},
+                json=recipe_data)
+
+    # Then test unit conversion
     input_data = {
         "unit_type": "si"
     }
@@ -292,6 +305,23 @@ def test_convert_recipe_units(client):
 
 def test_multiply_serving_size(client):
     global token
+    # First set up the recipe state
+    recipe_data = {
+        "recipe_url": "https://www.gimmesomeoven.com/best-mashed-potatoes-recipe/"
+    }
+    client.post('/scrape-recipe-steps',          
+                headers={"Authorization": f"{token}"},
+                json=recipe_data)
+
+    # Convert to SI units first
+    unit_data = {
+        "unit_type": "si"
+    }
+    client.post('/convert-recipe-units',          
+                headers={"Authorization": f"{token}"},
+                json=unit_data)
+
+    # Then test serving size calculation
     input_data = {
         "serving_size": "20"
     }
@@ -314,5 +344,7 @@ def test_multiply_serving_size(client):
     assert response.status_code == 200
     assert actual_response == expected_response
 
+if __name__ == '__main__':
+    pytest.main([__file__, '-vv'])
 
 # python -m pytest -vv

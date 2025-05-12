@@ -319,9 +319,9 @@ def calculate_servings(ingredients, servings, requested_serving_size):
         if not quantity:
             continue
 
-        quantity = str(quantity).replace(" ", "")
         for separator in quantity_separators:
-            if separator in quantity:
+            if separator in str(quantity):
+                quantity = str(quantity).replace(" ", "")
                 quantity = quantity.split(separator)
                 break
 
