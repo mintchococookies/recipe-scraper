@@ -322,7 +322,7 @@ def calculate_servings(ingredients, servings, requested_serving_size):
             quantity = quantity.split('to')
 
         def convert_fraction(q):
-            q = str(q).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
+            q = str(q).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667").replace("1/3", "0.333")
             return q
 
         def adjust_quantity(q):
@@ -390,7 +390,7 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
                     quantity = quantity.split('to')
                 else:
                     # convert fractions like 3 1/4 to a whole number i.e. 3.25
-                    quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667")
+                    quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667").replace("1/3", "0.333")
                     quantity_parts = quantity.split(" ")
                     quantity = sum(float(num_str) for num_str in quantity_parts)
                     

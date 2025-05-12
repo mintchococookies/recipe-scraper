@@ -12,7 +12,6 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('RECIPE_SCRAPER_SESSION_KEY')
-app.config['SECRET_KEY'] = os.getenv('RECIPE_SCRAPER_SESSION_KEY')
 
 authorizations = {
     'basicAuth': {
@@ -48,7 +47,7 @@ def generate_token(username):
         'username': username,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)  # Token expiration time
     }
-    return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+    return jwt.encode(payload, app.secret_key, algorithm='HS256')
 
 def verify_credentials(username, password):
     expected_username = os.getenv('RECIPE_SCRAPER_USERNAME')
@@ -66,7 +65,7 @@ def token_required(f):
             return {'message': 'Missing authorization token'}, 401
 
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            data = jwt.decode(token, app.secret_key, algorithms=['HS256'])
             current_user = data['username']
         except jwt.DecodeError:
             return {'message': 'Invalid token'}, 401
