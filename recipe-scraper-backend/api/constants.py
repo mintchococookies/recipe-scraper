@@ -38,8 +38,9 @@ quantity_separators = ['-', 'to', '–']
 unit_standardization_mapping = {
     'g': 'g', 'gram': 'grams', 'g': 'grams', 'lb': 'lb', 'pound': 'lb', 'pounds': 'lb', 'kg': 'kg', 'kilogram': 'kg', 
     'kilograms': 'kg', 'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz', 'mg': 'mg', 'milligram': 'mg', 'milligrams': 'mg', 
-    'l': 'l', 'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'ml': 'ml', 'milliliter': 'ml', 'milliliters': 'ml', 'tsp': 'tsp', 
-    'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tbsp': 'tbsp', 'tablespoon': 'tbsp', 'tablespoons': 'tbsp'
+    'l': 'l', 'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'ml': 'ml', 'milliliter': 'ml', 'milliliters': 'ml', 
+    'millilitre': 'ml', 'millilitres': 'ml', 'tsp': 'tsp', 'teaspoon': 'tsp', 'teaspoons': 'tsp', 
+    'tbsp': 'tbsp', 'tablespoon': 'tbsp', 'tablespoons': 'tbsp'
 }
 
 # Unit conversion constants
