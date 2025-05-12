@@ -453,7 +453,8 @@ export default {
         }, {
           headers: {
             Authorization: this.token
-          }
+          },
+          withCredentials: true
         });
 
         // Assign response to recipeResponse to display recipe details
@@ -483,7 +484,8 @@ export default {
         }, {
           headers: {
             Authorization: `${this.token}`
-          }
+          },
+          withCredentials: true
         });
         this.recipeResponse.ingredients = response.data;
         // Swap button text after successful conversion
@@ -503,7 +505,8 @@ export default {
         }, {
           headers: {
             Authorization: `${this.token}`
-          }
+          },
+          withCredentials: true
         });
         this.recipeResponse.ingredients = response.data;
         this.servingSize = this.servingSizeInput;

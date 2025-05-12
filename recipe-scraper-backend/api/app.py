@@ -4,6 +4,7 @@ import logging
 import json
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 from bs4 import BeautifulSoup
 from copy import deepcopy
@@ -22,6 +23,14 @@ CORS(app,
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      expose_headers=["Content-Type", "Authorization"])
+
+# Configure session
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='None',
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30)
+)
 
 # Get models from util
 recipe_url_model, unit_type_model, serving_size_model = create_models(api)

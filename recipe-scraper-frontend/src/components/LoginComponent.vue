@@ -25,6 +25,8 @@ export default {
                     const response = await axios.post(`${this.apiUrl}/login`, {
                         username: process.env.VUE_APP_USERNAME,
                         password: process.env.VUE_APP_PASSWORD
+                    }, {
+                        withCredentials: true
                     });
                     const token = response.data.token;
                     localStorage.setItem('jwt_token', token);
