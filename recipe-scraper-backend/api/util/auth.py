@@ -11,7 +11,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('RECIPE_SCRAPER_SESSION_KEY')  # for session management
+app.secret_key = os.getenv('RECIPE_SCRAPER_SESSION_KEY')
+app.config['SECRET_KEY'] = os.getenv('RECIPE_SCRAPER_SESSION_KEY')
+
 authorizations = {
     'basicAuth': {
         'type': 'basic'

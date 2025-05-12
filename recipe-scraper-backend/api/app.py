@@ -17,7 +17,11 @@ from util.auth import *
 from util.model_helper import *
 from constants import *
 
-CORS(app, origins=["*"])
+CORS(app, 
+     origins=["https://recipescraper.mintchococookies.com", "http://localhost:8000"],
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
+     expose_headers=["Content-Type", "Authorization"])
 
 # Get models from util
 recipe_url_model, unit_type_model, serving_size_model = create_models(api)
