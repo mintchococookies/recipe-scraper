@@ -58,6 +58,8 @@ def get_recipe_state():
     
     recipe_state = RecipeState()
     recipe_state.from_dict(session['recipe_state'])
+    session.modified = True
+    
     return recipe_state
 
 def save_recipe_state(recipe_state):
