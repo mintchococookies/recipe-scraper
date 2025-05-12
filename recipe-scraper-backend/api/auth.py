@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key') # for production
 app.config['SECRET_KEY'] = os.getenv('RECIPE_SCRAPER_SECRET_KEY', 'wheeee')  # for testing/dev
 authorizations = {
     'basicAuth': {
@@ -36,7 +35,7 @@ authorizations = {
 
 api = Api(app, authorizations=authorizations)
 
-# Define a model for the login request body (for Swagger UI clarity)
+# Login model for Swagger UI docs
 login_model = api.model('Login', {
     'username': fields.String(required=True, description='The username'),
     'password': fields.String(required=True, description='The password')
@@ -50,7 +49,6 @@ def generate_token(username):
     return jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
 
 def verify_credentials(username, password):
-    # Replace with actual authentication mechanism (don't store passwords in plain text)
     expected_username = os.getenv('RECIPE_SCRAPER_USERNAME')
     expected_password = os.getenv('RECIPE_SCRAPER_PASSWORD')
     if username == expected_username and password == expected_password:

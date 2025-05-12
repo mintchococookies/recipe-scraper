@@ -312,8 +312,10 @@ def extract_units(ingredients):
     
     if any(i[1] in to_si_conversion for i in ingredients_pre_conversion):
         original_unit_type = "metric"
-    if any(i[1] in to_metric_conversion for i in ingredients_pre_conversion):
+    elif any(i[1] in to_metric_conversion for i in ingredients_pre_conversion):
         original_unit_type = "si"
+    else:
+        original_unit_type = ""
 
     return standardized_ingredients, original_unit_type, ingredients_pre_conversion
 
