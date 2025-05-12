@@ -388,6 +388,9 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
                 elif 'to' in str(quantity):
                     quantity = quantity.replace(" ", "")
                     quantity = quantity.split('to')
+                elif '–' in str(quantity):
+                    quantity = str(quantity).replace(" ", "")
+                    quantity = quantity.split('–') 
                 else:
                     # convert fractions like 3 1/4 to a whole number i.e. 3.25
                     quantity = str(quantity).replace("1/2", "0.5").replace("1/4", "0.25").replace("3/4", "0.75").replace("1/8", "0.125").replace("2/3", "0.667").replace("1/3", "0.333")
