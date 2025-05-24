@@ -3,39 +3,27 @@ import axios from 'axios';
 const axiosInstance = axios.create({
     baseURL: 'https://logs-prod-020.grafana.net/loki/api/v1/push',
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.VUE_APP_GRAFANA_USER_ID}:${process.env.VUE_APP_GRAFANA_TOKEN}`
     }
 });
 
 class Logger {
-    constructor() {
-        this.userId = process.env.VUE_APP_GRAFANA_USER_ID;
-        this.apiKey = process.env.VUE_APP_GRAFANA_TOKEN;
-    }
-
     async log(message, metadata = {}) {
-        // If we're in development, just console log
-        if (process.env.NODE_ENV === 'development') {
-            console.log(`[${metadata.level || 'info'}]`, message, metadata);
-            return;
-        }
-
         try {
-            const timestamp = new Date().getTime();
+            const timestamp = Date.now() * 1000000; // Convert to nanoseconds
             const payload = {
-                app: 'recipe-scraper-frontend',
-                environment: process.env.NODE_ENV || 'development',
-                timestamp,
-                message,
-                ...metadata
+                streams: [{
+                    stream: {
+                        app: 'recipe-scraper-frontend',
+                        level: metadata.level || 'info',
+                        ...metadata
+                    },
+                    values: [[timestamp.toString(), message]]
+                }]
             };
 
-            await axiosInstance.post('', payload, {
-                auth: {
-                    username: this.userId,
-                    password: this.apiKey
-                }
-            });
+            await axiosInstance.post('', payload);
         } catch (error) {
             // In case of logging failure, fallback to console
             console.error('Failed to send logs to Grafana:', error);
