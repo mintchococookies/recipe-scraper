@@ -2,7 +2,6 @@ import requests
 import time
 import os
 from typing import Optional, Dict, Any
-from util.logging import logger
 
 class GrafanaLogger:
     def __init__(self, user_id: int, api_key: str):
