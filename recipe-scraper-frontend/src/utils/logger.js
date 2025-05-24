@@ -9,13 +9,13 @@ class Logger {
         // Create a dedicated axios instance for logging
         this.axiosInstance = axios.create({
             baseURL: this.baseUrl,
-            auth: {
-                username: this.userId,
-                password: this.apiKey
-            },
             headers: {
                 'Content-Type': 'application/json',
-                'X-Scope-OrgID': this.userId
+                'Authorization': `Basic ${btoa(`${this.userId}:${this.apiKey}`)}`,
+                'X-Scope-OrgID': this.userId,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Scope-OrgID'
             }
         });
     }
