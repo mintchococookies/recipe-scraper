@@ -564,7 +564,7 @@ class ScrapeRecipeSteps(Resource):
             return response, 200
         else:
             response = {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
-            details = concat(recipe_url, recipe_name, recipe_steps, recipe_state.ingredients, recipe_state.servings, recipe_state.original_unit_type)
+            details = f"{recipe_url} | {recipe_name} | {recipe_steps} | {recipe_state.ingredients} | {recipe_state.servings} | {recipe_state.original_unit_type}"
             datadog_logger.log("Response failed for " + recipe_url + "\nDetails: " + details, {"endpoint": "scrapeRecipeSteps", "result": "fail"})
             return response
 
