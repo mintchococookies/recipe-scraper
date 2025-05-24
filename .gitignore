@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 recipe-scraper-backend-go/
 node_modules/
+dev-notes
