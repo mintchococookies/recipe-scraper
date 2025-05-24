@@ -467,8 +467,11 @@ class ConvertUnits(Resource):
             recipe_state.ingredients = result
             save_recipe_state(recipe_state)
         
-        logger.log("ConvertUnits response for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits"})
-        return result
+            logger.log("ConvertUnits response for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits", "result": "success"})
+            return result
+        else:
+            logger.log("ConvertUnits failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "convertUnits", "result": "fail"})
+            return None
 
 @api.route('/calculate-serving-ingredients')
 class MultiplyServingSize(Resource):
@@ -511,7 +514,10 @@ class MultiplyServingSize(Resource):
     
         save_recipe_state(recipe_state)
         response = recipe_state.ingredients
-        logger.log("MultiplyServingSize response for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize"})
+        if response:
+            logger.log("MultiplyServingSize response for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize", "result": "success"})
+        else:
+            logger.log("MultiplyServingSize failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "multiplyServingSize", "result": "fail"})
         return response
 
 @api.route('/scrape-recipe-steps')
