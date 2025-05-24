@@ -1,23 +1,16 @@
 import axios from 'axios';
 
+const axiosInstance = axios.create({
+    baseURL: 'https://logs-prod-020.grafana.net/loki/api/v1/push',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
 class Logger {
     constructor() {
-        this.baseUrl = "https://logs-prod-020.grafana.net/loki/api/v1/push";
         this.userId = process.env.VUE_APP_GRAFANA_USER_ID;
         this.apiKey = process.env.VUE_APP_GRAFANA_TOKEN;
-        
-        // Create a dedicated axios instance for logging
-        this.axiosInstance = axios.create({
-            baseURL: this.baseUrl,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Basic ${btoa(`${this.userId}:${this.apiKey}`)}`,
-                'X-Scope-OrgID': this.userId,
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Scope-OrgID'
-            }
-        });
     }
 
     async log(message, metadata = {}) {
@@ -28,25 +21,21 @@ class Logger {
         }
 
         try {
-            const timestamp = new Date().getTime() * 1e9; // Convert to nanoseconds
-            const labels = {
+            const timestamp = new Date().getTime();
+            const payload = {
                 app: 'recipe-scraper-frontend',
                 environment: process.env.NODE_ENV || 'development',
+                timestamp,
+                message,
                 ...metadata
             };
 
-            const payload = {
-                streams: [
-                    {
-                        stream: labels,
-                        values: [
-                            [timestamp.toString(), message]
-                        ]
-                    }
-                ]
-            };
-
-            await this.axiosInstance.post('', payload);
+            await axiosInstance.post('', payload, {
+                auth: {
+                    username: this.userId,
+                    password: this.apiKey
+                }
+            });
         } catch (error) {
             // In case of logging failure, fallback to console
             console.error('Failed to send logs to Grafana:', error);
