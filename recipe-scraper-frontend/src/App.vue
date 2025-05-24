@@ -480,19 +480,10 @@ export default {
       try {
         if (!this.isLoggedIn) {
           console.error('No token found');
-          this.$logger.error('No token found when submitting recipe URL', {
-            source: 'frontend',
-            endpoint: 'scrapeRecipeSteps'
-          });
           return;
         }
 
         this.loading = true;
-        this.$logger.info('Submitting recipe URL', { 
-          url: this.recipeUrl,
-          source: 'frontend',
-          endpoint: 'scrapeRecipeSteps'
-        });
 
         const response = await axiosInstance.post(`${this.apiUrl}/scrape-recipe-steps`, {
           recipe_url: this.recipeUrl
@@ -506,23 +497,9 @@ export default {
         this.recipeResponse = response.data;
         this.unitType = this.recipeResponse.original_unit_type;
         this.servingSizeInput = parseInt(this.recipeResponse.servings);
-        this.$logger.info('Recipe scraped successfully', { 
-          url: this.recipeUrl,
-          recipe_name: this.recipeResponse.recipe_name,
-          unit_type: this.unitType,
-          servings: this.servingSizeInput,
-          source: 'frontend',
-          endpoint: 'scrapeRecipeSteps'
-        });
 
       } catch (error) {
         console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
-        this.$logger.error('Error submitting recipe URL', { 
-          url: this.recipeUrl,
-          error: error.response ? error.response.data : error.message,
-          source: 'frontend',
-          endpoint: 'scrapeRecipeSteps'
-        });
         this.recipeResponse = { error: 'Please enter a valid URL.' };
       } finally {
         this.loading = false;
@@ -532,21 +509,9 @@ export default {
       try {
         if (!this.isLoggedIn) {
           console.error('No token found');
-          this.$logger.error('No token found when converting units', {
-            source: 'frontend',
-            endpoint: 'convertUnits'
-          });
           return;
         }
         const temp_unit = this.unitType === 'metric' ? 'si' : 'metric';
-        this.$logger.info('Converting units', {
-          recipe_name: this.recipeResponse.recipe_name,
-          from: this.unitType,
-          to: temp_unit,
-          source: 'frontend',
-          endpoint: 'convertUnits'
-        });
-
         const response = await axiosInstance.post(`${this.apiUrl}/convert-recipe-units`, {
           unit_type: temp_unit,
           ingredients: this.recipeResponse.ingredients
@@ -558,40 +523,16 @@ export default {
         });
         this.recipeResponse.ingredients = response.data;
         this.unitType = this.unitType === 'metric' ? 'si' : 'metric';
-        this.$logger.info('Units converted successfully', {
-          recipe_name: this.recipeResponse.recipe_name,
-          new_unit_type: this.unitType,
-          source: 'frontend',
-          endpoint: 'convertUnits'
-        });
       } catch (error) {
         console.error('Error converting units:', error.response ? error.response.data : error.message);
-        this.$logger.error('Error converting units', {
-          recipe_name: this.recipeResponse.recipe_name,
-          error: error.response ? error.response.data : error.message,
-          source: 'frontend',
-          endpoint: 'convertUnits'
-        });
       }
     },
     async updateServingSize() {
       try {
         if (!this.isLoggedIn) {
           console.error('No token found');
-          this.$logger.error('No token found when updating serving size', {
-            source: 'frontend',
-            endpoint: 'calculateServingSize'
-          });
           return;
         }
-        this.$logger.info('Updating serving size', { 
-          recipe_name: this.recipeResponse.recipe_name,
-          current_size: this.servingSize,
-          new_size: this.servingSizeInput,
-          source: 'frontend',
-          endpoint: 'calculateServingSize'
-        });
-
         const response = await axiosInstance.post(`${this.apiUrl}/calculate-serving-ingredients`, {
           serving_size: this.servingSizeInput
         }, {
@@ -602,28 +543,11 @@ export default {
         });
         this.recipeResponse.ingredients = response.data;
         this.servingSize = this.servingSizeInput;
-        this.$logger.info('Serving size updated successfully', {
-          recipe_name: this.recipeResponse.recipe_name,
-          new_size: this.servingSize,
-          source: 'frontend',
-          endpoint: 'calculateServingSize'
-        });
       } catch (error) {
         console.error('Error calculating ingredients:', error.response ? error.response.data : error.message);
-        this.$logger.error('Error calculating ingredients', {
-          recipe_name: this.recipeResponse.recipe_name,
-          error: error.response ? error.response.data : error.message,
-          source: 'frontend',
-          endpoint: 'calculateServingSize'
-        });
       }
     },
     async printPage() {
-      this.$logger.info('Printing recipe', {
-        recipe_name: this.recipeResponse?.recipe_name,
-        source: 'frontend',
-        endpoint: 'printRecipe'
-      });
       window.print();
     }
   },
