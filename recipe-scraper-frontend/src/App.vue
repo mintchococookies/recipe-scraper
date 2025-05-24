@@ -419,6 +419,44 @@ a {
 import axios from 'axios';
 import LoginComponent from './components/LoginComponent.vue';
 
+// Create axios instance
+const axiosInstance = axios.create();
+
+// Add response interceptor
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If the error is 401 and we haven't retried yet
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // Try to login again
+        const loginResponse = await axios.post(`${process.env.VUE_APP_API_URL}/login`, {
+          username: process.env.VUE_APP_USERNAME,
+          password: process.env.VUE_APP_PASSWORD
+        }, {
+          withCredentials: true
+        });
+        
+        const newToken = loginResponse.data.token;
+        localStorage.setItem('jwt_token', newToken);
+        
+        // Update the token in the original request
+        originalRequest.headers.Authorization = newToken;
+        
+        // Retry the original request with the new token
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default {
   name: 'App',
   components: {
@@ -445,10 +483,9 @@ export default {
           return;
         }
 
-        // Set loading to true to show loading indicator and change button text
         this.loading = true;
 
-        const response = await axios.post(`${this.apiUrl}/scrape-recipe-steps`, {
+        const response = await axiosInstance.post(`${this.apiUrl}/scrape-recipe-steps`, {
           recipe_url: this.recipeUrl
         }, {
           headers: {
@@ -457,17 +494,14 @@ export default {
           withCredentials: true
         });
 
-        // Assign response to recipeResponse to display recipe details
         this.recipeResponse = response.data;
         this.unitType = this.recipeResponse.original_unit_type;
         this.servingSizeInput = parseInt(this.recipeResponse.servings);
 
       } catch (error) {
         console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
-        // Set error message in recipeResponse to display error
         this.recipeResponse = { error: 'Please enter a valid URL.' };
       } finally {
-        // Set loading back to false to hide loading indicator and restore button text
         this.loading = false;
       }
     },
@@ -478,7 +512,7 @@ export default {
           return;
         }
         const temp_unit = this.unitType === 'metric' ? 'si' : 'metric';
-        const response = await axios.post(`${this.apiUrl}/convert-recipe-units`, {
+        const response = await axiosInstance.post(`${this.apiUrl}/convert-recipe-units`, {
           unit_type: temp_unit,
           ingredients: this.recipeResponse.ingredients
         }, {
@@ -488,7 +522,6 @@ export default {
           withCredentials: true
         });
         this.recipeResponse.ingredients = response.data;
-        // Swap button text after successful conversion
         this.unitType = this.unitType === 'metric' ? 'si' : 'metric';
       } catch (error) {
         console.error('Error converting units:', error.response ? error.response.data : error.message);
@@ -500,7 +533,7 @@ export default {
           console.error('No token found');
           return;
         }
-        const response = await axios.post(`${this.apiUrl}/calculate-serving-ingredients`, {
+        const response = await axiosInstance.post(`${this.apiUrl}/calculate-serving-ingredients`, {
           serving_size: this.servingSizeInput
         }, {
           headers: {
