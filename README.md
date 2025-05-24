@@ -35,7 +35,8 @@ This is my personal project as a junior software engineer and may not meet produ
 ![Mobile Print Page](images/recipe-scraper2.png)
 ![Mobile Main Page](images/recipe-scraper3.png)
 
-### Observability is important! This application is integrated with Datadog for metrics tracking and alerting in case of any endpoint failures.
+## Observability
+This application is integrated with Datadog for metrics tracking and alerting in case of any endpoint failures.
 ![Datadog Dashboard](images/datadog-dashboard.png)
 ![Datadog Alert](images/datadog-alert.png)
 
