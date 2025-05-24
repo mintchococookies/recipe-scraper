@@ -467,7 +467,7 @@ class ConvertUnits(Resource):
             recipe_state.ingredients = result
             save_recipe_state(recipe_state)
         
-            logger.log("ConvertUnits response for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits", "result": "success"})
+            logger.log("ConvertUnits succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits", "result": "success"})
             return result
         else:
             logger.log("ConvertUnits failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "convertUnits", "result": "fail"})
@@ -515,7 +515,7 @@ class MultiplyServingSize(Resource):
         save_recipe_state(recipe_state)
         response = recipe_state.ingredients
         if response:
-            logger.log("MultiplyServingSize response for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize", "result": "success"})
+            logger.log("MultiplyServingSize succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize", "result": "success"})
         else:
             logger.log("MultiplyServingSize failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "multiplyServingSize", "result": "fail"})
         return response
