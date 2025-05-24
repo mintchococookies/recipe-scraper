@@ -141,7 +141,7 @@ def extract_ingredients(soup):
 
     # Found id or class labels for the ingredient li
     ingredients_html = [ingredient.text.strip() + " " for ingredient in soup.find_all('li', id=re.compile(r'.*(ingredient).*', re.I))]
-    ingredients_html += [" ".join(ingredient.text.split()) for ingredient in soup.find_all(['p', 'li'], {'class': re.compile(r'ingredient', re.I)})]
+    ingredients_html += [" ".join(ingredient.text.split()) for ingredient in soup.find_all(['p', 'li'], {'class': re.compile(r'ingredient', re.I)}) if ingredient.text.strip()]
     if ingredients_html:
         logging.info("DEBUG: method 1 ingredients")
         return sorted(set(ingredients_html))
@@ -153,7 +153,7 @@ def extract_ingredients(soup):
             for item in element.find_all('li'):  # Find all list items within the <ol> or <ul>
                 ingredient_text = item.get_text(strip=True)
                 if ingredient_text not in ingredients:
-                    ingredients.append(ingredient_text)  # Append each list item to the ingredients list
+                    ingredients.append(ingredient_text) if ingredient_text else None # Append each list item to the ingredients list
 
     # Manually search for what looks like ingredients (current limitation is if the ingredients list totally got no labelling anywhere in the whole page then cannot)
     if not ingredients:
@@ -169,7 +169,7 @@ def extract_ingredients(soup):
                     for li in ol_element.find_all('li'):
                         ingredient_text = li.get_text(strip=True)
                         if ingredient_text not in ingredients:
-                            ingredients.append(ingredient_text)
+                            ingredients.append(ingredient_text) if ingredient_text else None
                     break
 
                 current_element = current_element.find_next()
