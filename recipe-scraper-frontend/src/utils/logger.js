@@ -60,3 +60,10 @@ class Logger {
 }
 
 export const logger = new Logger();
+
+// Vue plugin installation
+export default {
+    install: (app) => {
+        app.config.globalProperties.$logger = logger;
+    }
+};
