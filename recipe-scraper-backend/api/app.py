@@ -560,12 +560,12 @@ class ScrapeRecipeSteps(Resource):
                 'servings': recipe_state.servings, 
                 'original_unit_type': recipe_state.original_unit_type
             }
-            datadog_logger.log("Response succeeded for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "success"})
+            datadog_logger.log("ScrapeRecipeSteps succeeded for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "success"})
             return response, 200
         else:
             response = {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
             details = f"{recipe_url} | {recipe_name} | {recipe_steps} | {recipe_state.ingredients} | {recipe_state.servings} | {recipe_state.original_unit_type}"
-            datadog_logger.log("Response failed for " + recipe_url + "\nDetails: " + details, {"endpoint": "scrapeRecipeSteps", "result": "fail"})
+            datadog_logger.log("ScrapeRecipeSteps failed for " + recipe_url + "\nDetails: " + details, {"endpoint": "scrapeRecipeSteps", "result": "fail"})
             return response
 
 @api.route('/health-check')
