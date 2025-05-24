@@ -27,7 +27,7 @@
             <div class="ingredients-flex">
               <h3 class="part-heading"><strong>📜 Ingredients:</strong></h3><button @click="convertUnits"
                 id="convert-button">{{ unitType ===
-                  'metric' ? 'Convert to SI' : 'Convert to Metric' }}</button>
+                  'metric' ? 'Convert to SI' : 'Convert to Metric (US)' }}</button>
             </div>
             <div v-for="(ingredient, index) in recipeResponse.ingredients" :key="index" class="recipe-ingredient">
               <input type="checkbox" :id="'ingredient-' + index" />
