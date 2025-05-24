@@ -56,15 +56,11 @@
       <div class="bottom-stuff">
         <div class="disclaimer">
           <h2>We ❤ Recipes (and code), but sometimes they don't see eye to eye! 🧐</h2>
-          <p>The web is a wonderful (and sometimes wacky) place, and every website has its own unique way of presenting
-            things. We've done our best to train our recipe detectives to handle all sorts of website layouts, but
-            occasionally
-            they might encounter one that throws them a curveball.</p>
-          <p>If you ever find a recipe that doesn't seem quite right, don't be shy! Just drop us a quick message at
+          <p>We've done our best to train our recipe detectives to handle all sorts of website layouts, but
+            occasionally they might encounter one that throws them a curveball.</p>
+          <p>If you ever find a recipe that doesn't seem quite right, don't be shy! You could drop us a quick message at
             <a href="https://mintchococookies.com/">mintchococookies.com</a> and we'll be happy to put on our detective
-            hats
-            and see if
-            we can fix it. 🕵🏻‍♀️
+            hats and see if we can fix it. Or we'll just check our logs hehe. 🕵🏻‍♀️
           </p>
           <p>Thanks for your understanding, and happy cooking! 👩🏻‍🍳 ‍‍</p>
         </div>
@@ -84,7 +80,7 @@
 
     </main>
     <div class="footer">
-      <p>© Lilian 2024 | Created with Flask, BeautifulSoup & Vue JS </p>
+      <p>© Lilian 2025 | Created with Flask, BeautifulSoup & Vue JS </p>
     </div>
   </div>
 </template>
