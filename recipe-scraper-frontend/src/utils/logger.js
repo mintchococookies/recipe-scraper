@@ -5,9 +5,28 @@ class Logger {
         this.baseUrl = "https://logs-prod-020.grafana.net/loki/api/v1/push";
         this.userId = process.env.VUE_APP_GRAFANA_USER_ID;
         this.apiKey = process.env.VUE_APP_GRAFANA_TOKEN;
+        
+        // Create a dedicated axios instance for logging
+        this.axiosInstance = axios.create({
+            baseURL: this.baseUrl,
+            auth: {
+                username: this.userId,
+                password: this.apiKey
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Scope-OrgID': this.userId
+            }
+        });
     }
 
     async log(message, metadata = {}) {
+        // If we're in development, just console log
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[${metadata.level || 'info'}]`, message, metadata);
+            return;
+        }
+
         try {
             const timestamp = new Date().getTime() * 1e9; // Convert to nanoseconds
             const labels = {
@@ -27,17 +46,11 @@ class Logger {
                 ]
             };
 
-            await axios.post(this.baseUrl, payload, {
-                auth: {
-                    username: this.userId,
-                    password: this.apiKey
-                },
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
+            await this.axiosInstance.post('', payload);
         } catch (error) {
+            // In case of logging failure, fallback to console
             console.error('Failed to send logs to Grafana:', error);
+            console.log(`[${metadata.level || 'info'}] ${message}`, metadata);
         }
     }
 
