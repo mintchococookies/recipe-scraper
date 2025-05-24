@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from util.auth import *
 from util.model_helper import *
 from constants import *
+from util.logging import logger
 
 CORS(app, 
      origins=["https://recipescraper.mintchococookies.com", "http://localhost:8000"],
@@ -37,6 +38,7 @@ recipe_url_model, unit_type_model, serving_size_model = create_models(api)
 
 class RecipeState:
     def __init__(self):
+        self.recipe_url = None
         self.ingredients = None
         self.servings = None
         self.ingredients_pre_conversion = None
@@ -47,6 +49,7 @@ class RecipeState:
     
     def to_dict(self):
         return {
+            'recipe_url': self.recipe_url,
             'ingredients': self.ingredients,
             'servings': self.servings,
             'ingredients_pre_conversion': self.ingredients_pre_conversion,
@@ -57,6 +60,7 @@ class RecipeState:
         }
     
     def from_dict(self, data):
+        self.recipe_url = data.get('recipe_url')
         self.ingredients = data.get('ingredients')
         self.servings = data.get('servings')
         self.ingredients_pre_conversion = data.get('ingredients_pre_conversion')
@@ -463,6 +467,7 @@ class ConvertUnits(Resource):
             recipe_state.ingredients = result
             save_recipe_state(recipe_state)
         
+        logger.log("ConvertUnits response for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits"})
         return result
 
 @api.route('/calculate-serving-ingredients')
@@ -503,9 +508,11 @@ class MultiplyServingSize(Resource):
                 recipe_state.servings, 
                 recipe_state.requested_serving_size
             )
-        
+    
         save_recipe_state(recipe_state)
-        return recipe_state.ingredients
+        response = recipe_state.ingredients
+        logger.log("MultiplyServingSize response for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize"})
+        return response
 
 @api.route('/scrape-recipe-steps')
 class ScrapeRecipeSteps(Resource):
@@ -518,6 +525,9 @@ class ScrapeRecipeSteps(Resource):
         recipe_state = get_recipe_state()
         data = request.get_json()
         recipe_url = data.get('recipe_url')
+        recipe_state.recipe_url = recipe_url
+
+        logger.log("Request received for recipe steps scraping: " + recipe_url)
         
         try:
             response = requests.get(recipe_url, headers=headers)
@@ -538,16 +548,20 @@ class ScrapeRecipeSteps(Resource):
         
         # With error handling
         if recipe_name and recipe_steps and recipe_state.ingredients and recipe_state.servings:
-            return {
+            response = {
                 'recipe_url': recipe_url, 
                 'recipe_name': recipe_name, 
                 'recipe_steps': recipe_steps, 
                 'ingredients': recipe_state.ingredients, 
                 'servings': recipe_state.servings, 
                 'original_unit_type': recipe_state.original_unit_type
-            }, 200
+            }
+            logger.log("Response succeeded for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "success"})
+            return response, 200
         else:
-            return {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
+            response = {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
+            logger.log("Response failed for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "fail"})
+            return response
 
 @api.route('/health-check')
 class HealthCheck(Resource):

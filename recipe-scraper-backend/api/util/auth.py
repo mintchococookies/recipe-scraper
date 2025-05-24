@@ -19,21 +19,6 @@ authorizations = {
     }
 }
 
-# ## LOGGING ######################################
-# # Basic logging configuration
-# logging.basicConfig(level=logging.INFO,
-#                     format='%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
-
-# # Create a RotatingFileHandler
-# handler = RotatingFileHandler('api.log', maxBytes=2000, backupCount=10)
-# handler.setLevel(logging.INFO)
-# formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
-# handler.setFormatter(formatter)
-
-# # Add the RotatingFileHandler to the root logger
-# logging.getLogger().addHandler(handler)
-# ##################################################
-
 api = Api(app, authorizations=authorizations)
 
 # Login model for Swagger UI docs
@@ -89,4 +74,6 @@ class UserLogin(Resource):
             return {'message': 'Invalid credentials'}, 401
 
         token = generate_token(username)
+        logger.log("Login request received", {"endpoint": "userLogin"})
+        
         return {'token': token}
