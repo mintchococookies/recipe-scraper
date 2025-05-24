@@ -4,3 +4,4 @@ __pycache__/
 .env
 .DS_Store
 recipe-scraper-backend-go/
+node_modules/
