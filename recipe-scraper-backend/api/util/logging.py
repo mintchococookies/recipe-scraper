@@ -33,6 +33,7 @@ class GrafanaLogger:
         }
         
         try:
+            print(logs)
             response = requests.post(
                 url=self.base_url,
                 auth=(self.user_id, self.api_key),
