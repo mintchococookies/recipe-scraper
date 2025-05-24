@@ -28,6 +28,11 @@ This is my personal project as a junior software engineer and may not meet produ
 - Lack of semantic labeling (eg. having id or class names with the word "ingredients" etc) for required sections on some websites. I've implemented manual DOM traversal searching based on what could be the beginning and ending of the ingredients/directions sections, but it's not 100% accurate at the moment.
 - Complex nesting of divs on some websites makes it challenging to extract sections. For example, see the ingredients UI design at https://www.sidechef.com/recipes/6106/chicken_chop_with_black_pepper_sauce/, which uses many nested divs.
 
+## Observability
+This application is integrated with Datadog for metrics tracking and alerting in case of any endpoint failures.
+![Datadog Dashboard](images/datadog-dashboard.png)
+![Datadog Alert](images/datadog-alert.png)
+
 ## Snapshots
 ![Swagger UI 1](../images/recipe-scraper5.PNG)
 ![Swagger UI 2](../images/recipe-scraper4.PNG)
