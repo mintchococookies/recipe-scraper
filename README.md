@@ -32,8 +32,6 @@ This is my personal project as a junior software engineer and may not meet produ
 ![Swagger UI 1](images/recipe-scraper5.PNG)
 ![Swagger UI 2](images/recipe-scraper4.PNG)
 ![PC Main Page](images/recipe-scraper1.png)
-![Mobile Print Page](images/recipe-scraper2.png)
-![Mobile Main Page](images/recipe-scraper3.png)
 
 ## Observability
 This application is integrated with Datadog for metrics tracking and alerting in case of any endpoint failures.
