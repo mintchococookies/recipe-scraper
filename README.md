@@ -1,8 +1,8 @@
-# Flask API Backend for the Recipe Scraper Web App
-
+# Recipe Scraper Web App
 ## View at:
 https://recipescraper.mintchococookies.com
 
+# Flask API Backend
 ## Key Features
 - Retrieve ingredients list and cooking instructions from any recipe URL.
 - Dynamically adjust servings for accurate ingredient quantities.
@@ -39,11 +39,7 @@ This application is integrated with Datadog for metrics tracking and alerting in
 ![Datadog Alert](images/datadog-alert.png)
 
 
-# Vue.js Frontend for the Recipe Scraper Web App
-
-## View at:
-https://recipescraper.mintchococookies.com
-
+# Vue.js Frontend
 ## Key Features
 - Retrieve ingredients list and cooking instructions from any recipe URL.
 - Dynamically adjust servings for accurate ingredient quantities.
