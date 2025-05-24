@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 from util.auth import *
 from util.model_helper import *
 from constants import *
-from util.logging import logger
+from util.logging import datadog_logger
 
 CORS(app, 
      origins=["https://recipescraper.mintchococookies.com", "http://localhost:8000"],
@@ -467,10 +467,10 @@ class ConvertUnits(Resource):
             recipe_state.ingredients = result
             save_recipe_state(recipe_state)
         
-            logger.log("ConvertUnits succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits", "result": "success"})
+            datadog_logger.log("ConvertUnits succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(result), {"endpoint": "convertUnits", "result": "success"})
             return result
         else:
-            logger.log("ConvertUnits failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "convertUnits", "result": "fail"})
+            datadog_logger.log("ConvertUnits failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "convertUnits", "result": "fail"})
             return None
 
 @api.route('/calculate-serving-ingredients')
@@ -515,9 +515,9 @@ class MultiplyServingSize(Resource):
         save_recipe_state(recipe_state)
         response = recipe_state.ingredients
         if response:
-            logger.log("MultiplyServingSize succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize", "result": "success"})
+            datadog_logger.log("MultiplyServingSize succeeded for " + recipe_state.recipe_url + "\nResponse: " + str(response), {"endpoint": "multiplyServingSize", "result": "success"})
         else:
-            logger.log("MultiplyServingSize failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "multiplyServingSize", "result": "fail"})
+            datadog_logger.log("MultiplyServingSize failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "multiplyServingSize", "result": "fail"})
         return response
 
 @api.route('/scrape-recipe-steps')
@@ -532,8 +532,6 @@ class ScrapeRecipeSteps(Resource):
         data = request.get_json()
         recipe_url = data.get('recipe_url')
         recipe_state.recipe_url = recipe_url
-
-        logger.log("Request received for recipe steps scraping: " + recipe_url)
         
         try:
             response = requests.get(recipe_url, headers=headers)
@@ -562,11 +560,12 @@ class ScrapeRecipeSteps(Resource):
                 'servings': recipe_state.servings, 
                 'original_unit_type': recipe_state.original_unit_type
             }
-            logger.log("Response succeeded for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "success"})
+            datadog_logger.log("Response succeeded for " + recipe_url + "\nResponse: " + str(response), {"endpoint": "scrapeRecipeSteps", "result": "success"})
             return response, 200
         else:
             response = {"error": "Oops! We encountered a hiccup while trying to extract the recipe from this website. It seems its structure is quite unique and our system is having trouble with it. We're continuously working on improvements though! Thank you for your patience and support. ^^"}
-            logger.log("Response failed for " + recipe_url, {"endpoint": "scrapeRecipeSteps", "result": "fail"})
+            details = concat(recipe_url, recipe_name, recipe_steps, recipe_state.ingredients, recipe_state.servings, recipe_state.original_unit_type)
+            datadog_logger.log("Response failed for " + recipe_url + "\nDetails: " + details, {"endpoint": "scrapeRecipeSteps", "result": "fail"})
             return response
 
 @api.route('/health-check')

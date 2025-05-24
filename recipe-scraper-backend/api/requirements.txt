@@ -9,3 +9,4 @@ python-dotenv==0.21.0
 Werkzeug==2.2.2
 gunicorn
 pytest==7.4.4
+datadog_api_client

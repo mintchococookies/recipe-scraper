@@ -7,7 +7,6 @@ from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
-from util.logging import logger
 
 load_dotenv()
 
@@ -75,6 +74,5 @@ class UserLogin(Resource):
             return {'message': 'Invalid credentials'}, 401
 
         token = generate_token(username)
-        logger.log("Login request received", {"endpoint": "userLogin"})
 
         return {'token': token}
