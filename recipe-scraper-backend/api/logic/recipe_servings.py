@@ -48,7 +48,7 @@ def get_serving_size(soup):
                         break
 
     match = re.search(r'\d+', servings)
-    return int(match.group()) if match else None
+    return str(match.group()) if match else None
 
 def calculate_servings(ingredients, servings, requested_serving_size):
     for ingredient in ingredients:

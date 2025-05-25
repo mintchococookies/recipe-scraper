@@ -116,12 +116,12 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
     
     # if they want to convert back to the original unit, must maintain the original units
     if original_unit_type == unit_type:
-        if requested_serving_size is None or requested_serving_size == str(float(servings)):
-            print("DEBUG: Conversion method 1")
+        if requested_serving_size is None or requested_serving_size == servings:
+            logging.info("DEBUG: Conversion method 1")
             return ingredients_pre_conversion
         else:
-            print("DEBUG: Conversion method 2")
-            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion), str(float(servings)), requested_serving_size)
+            logging.info("DEBUG: Conversion method 2")
+            ingredients = calculate_servings(deepcopy(ingredients_pre_conversion), servings, requested_serving_size)
             return ingredients
             
     # only do the conversion if they want a different unit
