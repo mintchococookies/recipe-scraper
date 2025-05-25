@@ -30,7 +30,7 @@ def get_serving_size(soup):
                 while current_element:
                     numbers = re.findall(r'\d+', current_element.get_text())
                     if numbers and len(current_element.get_text()) < 10:
-                        servings = int(list(filter(str.isdigit, current_element.get_text()))[0])
+                        servings = list(filter(str.isdigit, current_element.get_text()))[0]
                         break
                     current_element = current_element.find_next()
                 if servings is not None:
@@ -41,7 +41,7 @@ def get_serving_size(soup):
                     while current_element:
                         numbers = re.findall(r'\d+', current_element.get_text())
                         if numbers and len(current_element.get_text()) < 10:
-                            servings = int(list(filter(str.isdigit, current_element.get_text()))[0])
+                            servings = list(filter(str.isdigit, current_element.get_text()))[0]
                             break
                         current_element = current_element.find_next()
                     if servings is not None:

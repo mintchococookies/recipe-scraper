@@ -28,8 +28,10 @@ def extract_units(ingredients):
     for ingredient in ingredients:
         match = re.match(r'^((?:\d+\s*)?(?:\d*½|\d*¼|\d*[¾¾]|\d*⅛|\d*⅔|\d+\s*[/–-]|to\s*\d+)?[\s\d/–-]*)?[\s]*(?:([a-zA-Z]+)\b)?[\s]*(.*)$', ingredient)
         quantity, unit, name = match.groups()
-
+        
         if '-' in str(quantity):
+            quantity = str(quantity).replace(" ", "")
+        elif '–' in str(quantity):
             quantity = str(quantity).replace(" ", "")
         elif 'to' in str(quantity):
             quantity = str(quantity).replace(" ", "")
@@ -44,7 +46,7 @@ def extract_units(ingredients):
             modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
             if len(modified_unit) > 1:
                 # If unit is 'g' and next letter is vowel, treat whole as name, for example "garlic" vs "gchicken"
-                if modified_unit[1] == 'g' and modified_unit[2][:1].lower() in 'aeiour':
+                if modified_unit[1] == 'g' and modified_unit[2] and modified_unit[2][:1].lower() in 'aeiour':
                     name = unit + " " + name
                     unit = None
                 else:
