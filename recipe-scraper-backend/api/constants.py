@@ -30,7 +30,8 @@ common_units = [
     "grams", "gram", "milliliters", "milliliter", "centimeter", "centimeter", "kilograms", "kilogram", 
     "cups", "cup", "tablespoons", "tablespoon", "teaspoons", "teaspoon",
     "pounds", "pound", "ounces", "ounce", "grams", "gram", "tsp .", "tb .", "lb",
-    "cloves", "clove", "can", "tin", "jar", "g", "kg", "litre", "litres", "millilitres", "millilitre"
+    "cloves", "clove", "garlic clove", "can", "tin", "jar", "g", "kg", "litre", "litres", "millilitres", "millilitre",
+    "tbsp", "ml", "tsp", "lb", "oz"
 ]
 
 quantity_separators = ['-', 'to', '–']

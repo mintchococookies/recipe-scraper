@@ -42,15 +42,39 @@ def extract_units(ingredients):
         
         if unit:
             modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
-            unit = modified_unit[1] if len(modified_unit) > 1 else modified_unit[0]
-            name = modified_unit[2] + " " + name if len(modified_unit) > 1 else name
+            if len(modified_unit) > 1:
+                # If unit is 'g' and next letter is vowel, treat whole as name, for example "garlic" vs "gchicken"
+                if modified_unit[1] == 'g' and modified_unit[2][:1].lower() in 'aeiou':
+                    name = unit + " " + name
+                    unit = None
+                else:
+                    unit = modified_unit[1]
+                    name = modified_unit[2] + " " + name
+            else:
+                unit = modified_unit[0]
 
         else:
+            # the unit may be stuck directly to the ingredient name without any spacing, so filter whether the name contains any common units
             logging.info("DEBUG: Unit is NoneType:", name)
+            for u in sorted(common_units, key=len, reverse=True):
+                if u in name.lower():
+                    pattern = re.compile(r'\b' + re.escape(u) + r'\b', re.IGNORECASE)
+                    match = pattern.search(name)
+                    if match:
+                        unit = match.group(0)
+                        name = pattern.sub('', name, count=1).strip()
+                        if not unit:
+                            modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
+                            unit = modified_unit[1] if len(modified_unit) > 1 else modified_unit[0]
+                            name = modified_unit[2] + " " + name if len(modified_unit) > 1 else name
+                        break
         
         if unit and unit.lower() not in common_units:
             name = unit + " " + name
             unit = None
+
+        # remove any extra quantity or unit in brackets, for example "1 cup (50ml) of water" because that won't get converted
+        name = re.sub(r'[\(\[]\s*\d+\s*[a-zA-Z]*\s*[\)\]]', '', name).strip()
         
         parsed_ingredients.append([quantity, unit, name.strip()])
 
