@@ -48,6 +48,8 @@ unit_standardization_mapping = {
 to_si_conversion = {
     'cups': {'ml': 236.588, 'g': 125.39},
     'cup': {'ml': 236.588, 'g': 125.39},
+    'tbsp': {'ml': 14.7868, 'g': 14.175},
+    'tsp': {'ml': 4.92892, 'g': 5.69},
     'lb': {'g': 453.592},
     'oz': {'g': 28.3495}
 } 
