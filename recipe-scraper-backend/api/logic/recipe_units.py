@@ -44,7 +44,7 @@ def extract_units(ingredients):
             modified_unit = re.split(r'^({})'.format('|'.join(common_units)), unit)
             if len(modified_unit) > 1:
                 # If unit is 'g' and next letter is vowel, treat whole as name, for example "garlic" vs "gchicken"
-                if modified_unit[1] == 'g' and modified_unit[2][:1].lower() in 'aeiou':
+                if modified_unit[1] == 'g' and modified_unit[2][:1].lower() in 'aeiour':
                     name = unit + " " + name
                     unit = None
                 else:

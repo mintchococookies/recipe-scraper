@@ -5,7 +5,6 @@ emoji_map = {
     "salad": "🥗",
     "soup": "🍲",
     "pasta": "🍝",
-    "pasta": "🍝",
     "spaghetti": "🍝",
     "fish": "🐟",
     "fruit": "🍉",
