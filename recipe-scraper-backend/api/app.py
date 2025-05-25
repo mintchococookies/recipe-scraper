@@ -138,11 +138,11 @@ class ScrapeRecipeSteps(Resource):
 
         recipe_name = postprocess_text(extract_recipe_name(soup, recipe_url))
         recipe_steps = postprocess_list(extract_recipe_steps(soup))
-        recipe_state.servings = get_serving_size(soup)
         recipe_state.ingredients = postprocess_list(extract_ingredients(soup))
         if recipe_state.ingredients:
             recipe_state.ingredients, recipe_state.original_unit_type, recipe_state.ingredients_pre_conversion = extract_units(recipe_state.ingredients)
-            
+            recipe_state.servings = get_serving_size(soup)
+        
         save_recipe_state(session, recipe_state)
         
         # With error handling
