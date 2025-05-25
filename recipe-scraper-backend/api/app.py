@@ -123,7 +123,7 @@ class ScrapeRecipeSteps(Resource):
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @token_required
     def post(self, current_user):
-        recipe_state = get_recipe_state(session)
+        recipe_state = RecipeState()
         data = request.get_json()
         recipe_url = data.get('recipe_url')
         recipe_state.recipe_url = recipe_url
