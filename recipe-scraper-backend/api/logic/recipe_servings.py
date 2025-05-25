@@ -19,9 +19,11 @@ def get_serving_size(soup):
                 # if after splitting its still very long, then split it again by spaces cause it probably still contains some other irrelevant information
                 if len(text[0]) > 12:
                     text[0] = text[0].split(' ', 1)
-                    return text[0][0]
+                    servings = text[0][0]
+                    break
                 else:
-                    return text[0]
+                    servings = text[0]
+                    break
             # if not, check whether it is at the same level in the DOM structure (for both this and next method, extract a digit once its found)
             else:
                 current_element = element.find_next()
@@ -44,7 +46,9 @@ def get_serving_size(soup):
                         current_element = current_element.find_next()
                     if servings is not None:
                         break
-    return servings
+
+    match = re.search(r'\d+', servings)
+    return int(match.group()) if match else None
 
 def calculate_servings(ingredients, servings, requested_serving_size):
     for ingredient in ingredients:
