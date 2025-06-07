@@ -60,11 +60,6 @@
           <div id="print-button-div"><button @click="printPage">Print Recipe</button></div>
         </div>
       </div>
-      <p id="refresh-disclaimer">
-        <i>The app's API is hosted on a free deployment server which may experience cold starts. Please refresh the
-          page if
-          nothing happens. Thank you for your understanding!</i>
-      </p>
       <div class="bottom-stuff">
         <div class="disclaimer">
           <h2>We ❤ Recipes (and code), but sometimes they don't see eye to eye! 🧐</h2>
@@ -89,6 +84,11 @@
           </ul>
         </div>
       </div>
+      <p id="refresh-disclaimer">
+        <i>The app's API is hosted on a free deployment server which may experience cold starts. Please refresh the
+          page if
+          nothing happens. Thank you for your understanding!</i>
+      </p>
 
     </main>
     <div class="footer">
@@ -635,7 +635,20 @@ export default {
         "🥘 Warming up the kitchen...",
         "👨‍🍳 Consulting with master chefs...",
         "📚 Reading ancient cooking scrolls...",
-        "✨ Adding a pinch of magic..."
+        "✨ Adding a pinch of magic...",
+        "🧂 Measuring just the right amount of salt...",
+        "🥕 Washing the vegetables with love...",
+        "🍳 Flipping the perfect omelette...",
+        "📦 Unpacking secret ingredients...",
+        "🕰️ Letting the dough rise...",
+        "🎩 Pulling recipes out of a hat...",
+        "🧁 Frosting cupcakes with care...",
+        "🍜 Tasting for seasoning...",
+        "🫙 Brewing something delicious...",
+        "🎶 Humming a kitchen tune...",
+        "🍞 Toasting bread to golden perfection...",
+        "🛒 Running to the market real quick...",
+        "🍝 I like pasta..."
       ],
       currentLoadingText: "",
       loadingTextIndex: 0,
@@ -711,13 +724,13 @@ export default {
           
           // More specific error handling
           if (error.response?.status === 401) {
-            this.recipeResponse = { error: 'Your session has expired. Please refresh the page to continue.' };
+            this.recipeResponse = { error: 'Your session has expired 🫢. Please refresh the page to continue.' };
           } else if (error.response?.status === 400) {
-            this.recipeResponse = { error: 'Please enter a valid recipe URL.' };
+            this.recipeResponse = { error: '🤔 We can't seem to access this recipe URL. Please enter a valid one.' };
           } else if (error.response?.status === 500) {
-            this.recipeResponse = { error: 'Sorry, we encountered an error while processing this recipe. Please try again later.' };
+            this.recipeResponse = { error: 'Sorry! The structure of this webpage is too unique 😟. Rest assured, we will receive this log and fix it 💪🏻' };
           } else {
-            this.recipeResponse = { error: 'An unexpected error occurred. Please try again.' };
+            this.recipeResponse = { error: 'Oops, something's not right 🫨. Please try again.' };
           }
         }
       } finally {
