@@ -112,7 +112,7 @@
 }
 
 .footer {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   bottom: 0;
   margin: 0 auto;
   text-align: center;
@@ -122,6 +122,7 @@ body {
   font-family: 'JetBrains Mono', monospace;
   background-color: #0A1828;
   color: #fff;
+  font-size: 14px;
 }
 
 main {
@@ -134,10 +135,19 @@ main {
 
 h1 {
   font-weight: 800;
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.2rem;
+}
+
+h3 {
+  font-size: 1rem;
 }
 
 .recipe-name {
-  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(245, 245, 245, 0.1);
 }
 
 .recipe-ingredients,
@@ -159,11 +169,27 @@ h1 {
   flex-direction: column;
 }
 
-.recipe-step,
-.recipe-ingredient {
+.recipe-step {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  position: relative;
+}
+
+.recipe-ingredient {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  position: relative;
+}
+
+.recipe-step:hover,
+.recipe-ingredient:hover {
+  background-color: rgba(245, 245, 245, 0.1);
 }
 
 .recipe-step input[type="checkbox"],
@@ -171,21 +197,27 @@ h1 {
   margin-right: 20px;
   width: 18px;
   height: 18px;
+  position: relative;
+  z-index: 1;
 }
 
 .recipe-step-number {
   margin-right: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .recipe-step label,
 .recipe-ingredient label {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 #input-div {
   display: flex;
   justify-content: space-between;
-  padding-bottom: 3rem;
+  padding-bottom: 1.5rem;
   padding-top: 1.5rem;
   height: 4vh;
 }
@@ -194,7 +226,7 @@ input[type="text"] {
   width: 70%;
   height: 100%;
   padding: 0 15px;
-  font-size: 15px;
+  font-size: 14px;
   border: 1px solid #F5F5F5;
   border-radius: 5px;
   outline: none;
@@ -204,7 +236,7 @@ input[type="text"] {
 
 input[type="number"] {
   padding: 4px 0px 4px 10px;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 600;
   border: 2px solid #F5F5F5;
   border-radius: 5px;
@@ -226,7 +258,7 @@ button {
   padding: 6px 10px;
   border-radius: 5px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   text-decoration: none;
   height: 100%;
   transition: background-color 0.4s ease;
@@ -270,12 +302,43 @@ button:active {
 }
 
 .disclaimer {
-  font-size: 90%;
+  font-size: 80%;
+  margin-bottom: 2rem;
+}
+
+.disclaimer h2 {
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+  color: #F5F5F5;
+}
+
+.disclaimer p {
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  opacity: 0.9;
 }
 
 .limitations {
-  padding-top: 1rem;
-  font-size: 90%;
+  padding-top: 1.5rem;
+  font-size: 80%;
+  border-top: 1px solid rgba(245, 245, 245, 0.1);
+}
+
+.limitations h3 {
+  font-size: 0.9rem;
+  color: #F5F5F5;
+  margin-bottom: 1rem;
+}
+
+.limitations ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.limitations li {
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+  opacity: 0.9;
 }
 
 a {
@@ -285,7 +348,10 @@ a {
 
 .recipe-name>h2 {
   font-weight: 1000;
-  text-decoration: underline;
+}
+
+#main-content {
+  margin-top: 1rem;
 }
 
 #print-button-div {
@@ -302,11 +368,14 @@ a {
 
 .bottom-stuff {
   margin-top: 2rem;
-  border: 2px solid #F5F5F5;
+  background: rgba(245, 245, 245, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 30px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(245, 245, 245, 0.1);
 }
-
 
 #hidden-source {
   visibility: hidden;
@@ -453,7 +522,7 @@ a {
 }
 
 .loading-text {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-family: 'JetBrains Mono', monospace;
   color: #fff;
   margin-top: 20px;
