@@ -425,7 +425,7 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     
     // If the error is 401 and we haven't retried yet
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       try {
@@ -446,6 +446,9 @@ axiosInstance.interceptors.response.use(
         // Retry the original request with the new token
         return axiosInstance(originalRequest);
       } catch (refreshError) {
+        // If refresh fails, clear the token and trigger re-login
+        localStorage.removeItem('jwt_token');
+        window.location.reload(); // This will trigger the login component to try logging in again
         return Promise.reject(refreshError);
       }
     }
@@ -480,6 +483,7 @@ export default {
         }
 
         this.loading = true;
+        this.recipeResponse = null; // Clear previous response
 
         const response = await axiosInstance.post(`${this.apiUrl}/scrape-recipe-steps`, {
           recipe_url: this.recipeUrl
@@ -496,7 +500,17 @@ export default {
 
       } catch (error) {
         console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
-        this.recipeResponse = { error: 'Please enter a valid URL.' };
+        
+        // More specific error handling
+        if (error.response?.status === 401) {
+          this.recipeResponse = { error: 'Your session has expired. Please refresh the page to continue.' };
+        } else if (error.response?.status === 400) {
+          this.recipeResponse = { error: 'Please enter a valid recipe URL.' };
+        } else if (error.response?.status === 500) {
+          this.recipeResponse = { error: 'Sorry, we encountered an error while processing this recipe. Please try again later.' };
+        } else {
+          this.recipeResponse = { error: 'An unexpected error occurred. Please try again.' };
+        }
       } finally {
         this.loading = false;
       }
@@ -549,9 +563,16 @@ export default {
   },
   mounted() {
     const token = localStorage.getItem('jwt_token');
+    if (token) {
+    this.token = token;
     this.token = token;
     if (token) {
+      this.token = token;
+    if (token) {
       this.isLoggedIn = true;
+    } else {
+      // If no token, trigger login component to try logging in
+      this.isLoggedIn = false;
     }
   }
 };
