@@ -21,7 +21,7 @@ from recipe_state import *
 from logic import *
 
 CORS(app, 
-     origins=["https://recipescraper.mintchococookies.com", "http://localhost:8000"],
+     origins=["https://recipescraper.mintchococookies.com", "http://localhost:8080"],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
      expose_headers=["Content-Type", "Authorization"])

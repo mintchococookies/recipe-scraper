@@ -5,9 +5,18 @@
       <h1>&#129386; Recipe Scraper</h1>
       <div id="input-div">
         <input type="text" v-model="recipeUrl" placeholder="Paste recipe URL" />
-        <button id="submit-button" :disabled="loading" @click="submitRecipeUrl">{{ loading ? 'Loading..' : 'Search'
-        }}</button>
+        <button id="submit-button" :disabled="loading" @click="submitRecipeUrl">{{ loading ? 'Loading..' : 'Search' }}</button>
       </div>
+      
+      <!-- Add loading overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">{{ currentLoadingText }}</p>
+          <button class="cancel-button" @click="cancelOperation">Cancel</button>
+        </div>
+      </div>
+
       <div v-if="isLoggedIn">
         <!-- Display error message if api returns error -->
         <div v-if="recipeResponse && recipeResponse.error" class="error-message">
@@ -408,6 +417,68 @@ a {
     color: black;
   }
 }
+
+/* Add loading overlay styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(10, 24, 40, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  text-align: center;
+  color: #fff;
+}
+
+.loading-spinner {
+  width: 45px;
+  height: 45px;
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top: 5px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff;
+  margin-top: 20px;
+  animation: fadeInOut 5s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.cancel-button {
+  margin-top: 20px;
+  padding: 8px 20px;
+  background-color: #F5F5F5;
+  color: #0A1828;
+  border: 2px solid #F5F5F5;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background-color: #0A1828;
+  color: #F5F5F5;
+}
 </style>
 
 
@@ -472,17 +543,54 @@ export default {
       token: null,
       apiUrl: process.env.VUE_APP_API_URL,
       loading: false,
+      loadingTexts: [
+        "🧙‍♀️ Casting cooking spells...",
+        "🥄 Stirring up some magic...",
+        "📝 Taking notes from grandma's recipe book...",
+        "🌿 Picking fresh herbs from the garden...",
+        "🥘 Warming up the kitchen...",
+        "👨‍🍳 Consulting with master chefs...",
+        "📚 Reading ancient cooking scrolls...",
+        "✨ Adding a pinch of magic..."
+      ],
+      currentLoadingText: "",
+      loadingTextIndex: 0,
+      cancelToken: null,
     };
   },
   methods: {
+    startLoadingAnimation() {
+      this.currentLoadingText = this.loadingTexts[0];
+      this.loadingTextIndex = 0;
+      
+      // Change text every 1 seconds
+      this.loadingInterval = setInterval(() => {
+        this.loadingTextIndex = (this.loadingTextIndex + 1) % this.loadingTexts.length;
+        this.currentLoadingText = this.loadingTexts[this.loadingTextIndex];
+      }, 1000);
+    },
+    
+    stopLoadingAnimation() {
+      if (this.loadingInterval) {
+        clearInterval(this.loadingInterval);
+      }
+    },
+    
     async submitRecipeUrl() {
+      if (!this.recipeUrl) return;
+      
+      this.loading = true;
+      this.startLoadingAnimation();
+      
+      // Create a new cancel token for this request
+      this.cancelToken = axios.CancelToken.source();
+      
       try {
         if (!this.isLoggedIn) {
           console.error('No token found');
           return;
         }
 
-        this.loading = true;
         this.recipeResponse = null; // Clear previous response
 
         const response = await axiosInstance.post(`${this.apiUrl}/scrape-recipe-steps`, {
@@ -491,7 +599,8 @@ export default {
           headers: {
             Authorization: this.token
           },
-          withCredentials: true
+          withCredentials: true,
+          cancelToken: this.cancelToken.token
         });
 
         this.recipeResponse = response.data;
@@ -499,20 +608,27 @@ export default {
         this.servingSizeInput = parseInt(this.recipeResponse.servings);
 
       } catch (error) {
-        console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
-        
-        // More specific error handling
-        if (error.response?.status === 401) {
-          this.recipeResponse = { error: 'Your session has expired. Please refresh the page to continue.' };
-        } else if (error.response?.status === 400) {
-          this.recipeResponse = { error: 'Please enter a valid recipe URL.' };
-        } else if (error.response?.status === 500) {
-          this.recipeResponse = { error: 'Sorry, we encountered an error while processing this recipe. Please try again later.' };
+        if (axios.isCancel(error)) {
+          console.log('Request cancelled:', error.message);
+          this.recipeResponse = null;
         } else {
-          this.recipeResponse = { error: 'An unexpected error occurred. Please try again.' };
+          console.error('Error submitting recipe URL:', error.response ? error.response.data : error.message);
+          
+          // More specific error handling
+          if (error.response?.status === 401) {
+            this.recipeResponse = { error: 'Your session has expired. Please refresh the page to continue.' };
+          } else if (error.response?.status === 400) {
+            this.recipeResponse = { error: 'Please enter a valid recipe URL.' };
+          } else if (error.response?.status === 500) {
+            this.recipeResponse = { error: 'Sorry, we encountered an error while processing this recipe. Please try again later.' };
+          } else {
+            this.recipeResponse = { error: 'An unexpected error occurred. Please try again.' };
+          }
         }
       } finally {
         this.loading = false;
+        this.stopLoadingAnimation();
+        this.cancelToken = null;
       }
     },
     async convertUnits() {
@@ -559,7 +675,14 @@ export default {
     },
     async printPage() {
       window.print();
-    }
+    },
+    cancelOperation() {
+      if (this.cancelToken) {
+        this.cancelToken.cancel('Operation cancelled by user');
+      }
+      this.loading = false;
+      this.stopLoadingAnimation();
+    },
   },
   mounted() {
     const token = localStorage.getItem('jwt_token');
@@ -570,6 +693,9 @@ export default {
       // If no token, trigger login component to try logging in
       this.isLoggedIn = false;
     }
+  },
+  beforeUnmount() {
+    this.stopLoadingAnimation();
   }
 };
 </script>
