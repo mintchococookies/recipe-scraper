@@ -5,6 +5,7 @@ import json
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from bs4 import BeautifulSoup
 from copy import deepcopy
@@ -115,6 +116,23 @@ class MultiplyServingSize(Resource):
             datadog_logger.log("MultiplyServingSize failed for " + recipe_state.recipe_url + "\nResponse: None", {"endpoint": "multiplyServingSize", "result": "fail"})
         return response
 
+def extract_recipe_data_parallel(soup, recipe_url):
+    """Extract recipe data in parallel using ThreadPoolExecutor"""
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        # Submit all tasks
+        future_name = executor.submit(extract_recipe_name, soup, recipe_url)
+        future_steps = executor.submit(extract_recipe_steps, soup)
+        future_ingredients = executor.submit(extract_ingredients, soup)
+        future_servings = executor.submit(get_serving_size, soup)
+        
+        # Get results as they complete
+        recipe_name = postprocess_text(future_name.result())
+        recipe_steps = postprocess_list(future_steps.result())
+        ingredients = postprocess_list(future_ingredients.result())
+        servings = future_servings.result()
+        
+        return recipe_name, recipe_steps, ingredients, servings
+
 @api.route('/scrape-recipe-steps')
 class ScrapeRecipeSteps(Resource):
     @api.doc(description="Recipe steps scraping")
@@ -136,12 +154,11 @@ class ScrapeRecipeSteps(Resource):
         
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        recipe_name = postprocess_text(extract_recipe_name(soup, recipe_url))
-        recipe_steps = postprocess_list(extract_recipe_steps(soup))
-        recipe_state.ingredients = postprocess_list(extract_ingredients(soup))
+        # Extract all recipe data in parallel
+        recipe_name, recipe_steps, recipe_state.ingredients, recipe_state.servings = extract_recipe_data_parallel(soup, recipe_url)
+        
         if recipe_state.ingredients:
             recipe_state.ingredients, recipe_state.original_unit_type, recipe_state.ingredients_pre_conversion = extract_units(recipe_state.ingredients)
-            recipe_state.servings = get_serving_size(soup)
         
         save_recipe_state(session, recipe_state)
         
