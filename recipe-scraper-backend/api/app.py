@@ -166,7 +166,7 @@ class ScrapeRecipeSteps(Resource):
             response = http_session.get(recipe_url, headers=headers)
             response.raise_for_status()
         except requests.RequestException as e:
-            return {'error': 'Failed to fetch recipe data: {}'.format(str(e))}, 500
+            return {'error': 'Failed to fetch recipe data: {}'.format(str(e))}, 400
         
         soup = BeautifulSoup(response.content, 'lxml')  # Using lxml parser for better performance
 
