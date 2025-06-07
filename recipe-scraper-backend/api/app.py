@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from bs4 import BeautifulSoup
 from copy import deepcopy
@@ -36,6 +38,17 @@ app.config.update(
 
 # Get models from util
 recipe_url_model, unit_type_model, serving_size_model = create_models(api)
+
+# Create a session with connection pooling and retry strategy
+http_session = requests.Session()
+retry_strategy = Retry(
+    total=3,
+    backoff_factor=0.5,
+    status_forcelist=[500, 502, 503, 504]
+)
+adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=100, pool_maxsize=100)
+http_session.mount("http://", adapter)
+http_session.mount("https://", adapter)
 
 # ============= APIs =============
 @api.route('/convert-recipe-units')
@@ -150,12 +163,12 @@ class ScrapeRecipeSteps(Resource):
         recipe_state.recipe_url = recipe_url
         
         try:
-            response = requests.get(recipe_url, headers=headers)
-            response.raise_for_status()  
+            response = http_session.get(recipe_url, headers=headers)
+            response.raise_for_status()
         except requests.RequestException as e:
             return {'error': 'Failed to fetch recipe data: {}'.format(str(e))}, 500
         
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, 'lxml')  # Using lxml parser for better performance
 
         # Extract all recipe data in parallel
         recipe_name, recipe_steps, recipe_state.ingredients, recipe_state.servings = extract_recipe_data_parallel(soup, recipe_url)
