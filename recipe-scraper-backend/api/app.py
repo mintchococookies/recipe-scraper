@@ -45,6 +45,7 @@ class ConvertUnits(Resource):
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @api.expect(unit_type_model)
     @token_required
+    @track_latency('convert-recipe-units')
     def post(self, current_user):
         recipe_state = get_recipe_state(session)
         data = request.get_json()
@@ -76,6 +77,7 @@ class MultiplyServingSize(Resource):
     @api.doc(security='basicAuth')
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @token_required
+    @track_latency('calculate-serving-ingredients')
     def post(self, current_user):
         recipe_state = get_recipe_state(session)
         data = request.get_json()
@@ -140,6 +142,7 @@ class ScrapeRecipeSteps(Resource):
     @api.doc(security='basicAuth')
     @api.doc(params={'Authorization': {'in': 'header', 'description': 'Bearer <JWT token>', 'type': 'string'}})
     @token_required
+    @track_latency('scrape-recipe-steps')
     def post(self, current_user):
         recipe_state = RecipeState()
         data = request.get_json()

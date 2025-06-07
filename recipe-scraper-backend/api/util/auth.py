@@ -7,6 +7,7 @@ from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
+from .metrics import track_latency
 
 load_dotenv()
 
@@ -62,6 +63,7 @@ def token_required(f):
 @api.route('/login')
 class UserLogin(Resource):
     @api.expect(login_model)
+    @track_latency('login')
     def post(self):
         data = request.get_json()
         username = data.get('username')
