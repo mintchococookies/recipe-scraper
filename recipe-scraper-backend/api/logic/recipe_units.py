@@ -150,7 +150,7 @@ def convert_units(ingredients, unit_type, requested_serving_size, servings, orig
 
             if quantity and unit and unit in [key for key, value in conversion_dict.items()]:
                 # convert liquids from cups/tsp/tbsp to ml and solids to g
-                if unit in ["cup", "cups", "tsp", "tbsp"]:
+                if unit in ["cup", "cups"]:
                     if any(liquid in name for liquid in liquids):
                         convert_to = "ml" 
                     else:

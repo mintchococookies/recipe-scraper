@@ -241,7 +241,7 @@ def test_scrape_recipe_steps(client):
                            json=input_data)
     expected_response = {
         "recipe_url": "https://www.gimmesomeoven.com/best-mashed-potatoes-recipe/",
-        "recipe_name": "Best Mashed Potatoes Recipe",
+        "recipe_name": "🥔 Best Mashed Potatoes Recipe",
         "recipe_steps": [
             "Cut the potatoes.Feel free to peel your potatoes or leave the skins on.  Then cut them into evenly-sized chunks, about an inch or so thick, and transfer them to alarge stockpotfull of cold water.",
             "Boil the potatoes.Once all of your potatoes are cut, be sure that there is enough cold water in the pan so that the water line sits about 1 inch above the potatoes.  Stir the garlic and 1 tablespoon sea salt into the water.  Then turn the heat to high and cook until the water comes to a boil.  Reduce heat to medium-high (or whatever temperature is needed to maintain the boil) and continue cooking for about 10-12 minutes, or until a knife inserted in the middle of a potato goes in easily with almost no resistance.  Carefully drain out all of the water.",

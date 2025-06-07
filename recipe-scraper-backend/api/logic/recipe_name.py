@@ -13,18 +13,22 @@ def extract_recipe_name(soup, recipe_url):
     recipe_name_from_url = recipe_name_from_url[0]
 
     # labelled with ID or class
-    title_html = [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'id': re.compile(r'.*(title|heading).*', re.I)})]
-    title_html += [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'class': re.compile(r'.*(title|heading).*', re.I)})]
-    recipe_name_list = [item for item in title_html if item.strip().istitle()]
+    title_html = [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'id': re.compile(r'.*(title|heading|recipe-name).*', re.I)})]
+    title_html += [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'class': re.compile(r'.*(title|heading|recipe-name).*', re.I)})]
+    recipe_name_list = [item.strip() for item in title_html if item.strip().istitle()]
 
     # compare which title/heading is most similar to the url cause the url usually has the recipe name in it
     matched_name = None
     for item in recipe_name_list:
+        # Skip titles that are too generic (like category pages)
+        if item.lower().endswith(('ideas', 'recipes', 'collection')):
+            continue
+            
         words1 = set(item.lower().split())
         words2 = set(recipe_name_from_url.lower().split())
         intersection = words1.intersection(words2)
         similarity = len(intersection) / max(len(words1), len(words2))
-        if similarity >= 0.3:
+        if similarity >= 0.4:
             matched_name = item.strip()
             break  # stop after first good match
 
