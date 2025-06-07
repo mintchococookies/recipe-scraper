@@ -1,5 +1,7 @@
 <template>
   <div id="app">
+    <!-- Add meta title that will be used for print filename -->
+    <meta :title="recipeResponse ? recipeResponse.recipe_name : 'Recipe'">
     <LoginComponent />
     <main>
       <h1>&#129386; Recipe Scraper</h1>
@@ -54,6 +56,7 @@
               <label :for="'step-' + index">{{ step }}</label>
             </div>
           </div>
+          <p id="hidden-credits">✨ Recipe extracted with https://recipescraper.mintchococookies.com ✨</p>
           <div id="print-button-div"><button @click="printPage">Print Recipe</button></div>
         </div>
       </div>
@@ -377,7 +380,7 @@ a {
   border: 1px solid rgba(245, 245, 245, 0.1);
 }
 
-#hidden-source {
+#hidden-source, #hidden-credits {
   visibility: hidden;
   height: 0px;
 }
@@ -458,7 +461,13 @@ a {
 }
 
 @media print {
-
+  @page {
+    /* This will suggest the filename when saving the PDF */
+    size: auto;
+    margin: 20mm;
+  }
+  
+  /* Rest of print styles */
   body,
   #update-servings-div>button,
   #update-servings-div>label,
@@ -476,10 +485,16 @@ a {
     color: black;
   }
 
-  #hidden-source {
+  #hidden-source, #hidden-credits {
     visibility: visible;
     color: darkgrey;
     height: 100%;
+  }
+
+  #hidden-credits {
+    font-size: 0.5rem;
+    text-align: center;
+    margin-top: 2rem;
   }
 
   input[type="number"] {
@@ -754,7 +769,21 @@ export default {
       }
     },
     async printPage() {
-      window.print();
+      // Set the document title to the recipe name before printing
+      if (this.recipeResponse && this.recipeResponse.recipe_name) {
+        const originalTitle = document.title;
+        const recipeNameLower = this.recipeResponse.recipe_name.toLowerCase();
+        const recipeLower = 'recipe';
+        document.title = recipeNameLower.endsWith(recipeLower) 
+          ? this.recipeResponse.recipe_name 
+          : `${this.recipeResponse.recipe_name} Recipe`;
+        
+        // Print and restore original title
+        window.print();
+        document.title = originalTitle;
+      } else {
+        window.print();
+      }
     },
     cancelOperation() {
       if (this.cancelToken) {

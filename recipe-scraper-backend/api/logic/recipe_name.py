@@ -35,11 +35,11 @@ def extract_recipe_name(soup, recipe_url):
     # Use matched_name if found, else fallback
     name = matched_name if matched_name else recipe_name_from_url.strip()
 
-    # Check if any emoji_map key is a substring in name (case-insensitive)
-    lower_name = name.lower()
-    for key in emoji_map:
-        if key.lower() in lower_name:
-            name = emoji_map[key] + " " + name
-            break  # add emoji only once for first match
+    # # Check if any emoji_map key is a substring in name (case-insensitive)
+    # lower_name = name.lower()
+    # for key in emoji_map:
+    #     if key.lower() in lower_name:
+    #         name = emoji_map[key] + " " + name
+    #         break  # add emoji only once for first match
 
     return name
