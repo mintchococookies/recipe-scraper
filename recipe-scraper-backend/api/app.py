@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 from copy import deepcopy
 from flask import Flask, request, session
 from flask_cors import CORS
@@ -133,12 +133,15 @@ class MultiplyServingSize(Resource):
 
 def extract_recipe_data_parallel(soup, recipe_url):
     """Extract recipe data in parallel using ThreadPoolExecutor"""
+    # Create context with pre-fetched common elements
+    context = RecipeContext(soup=soup, recipe_url=recipe_url)
+    
     with ThreadPoolExecutor(max_workers=4) as executor:
-        # Submit all tasks
-        future_name = executor.submit(extract_recipe_name, soup, recipe_url)
-        future_steps = executor.submit(extract_recipe_steps, soup)
-        future_ingredients = executor.submit(extract_ingredients, soup)
-        future_servings = executor.submit(get_serving_size, soup)
+        # Submit all tasks with shared context
+        future_name = executor.submit(extract_recipe_name, context)
+        future_steps = executor.submit(extract_recipe_steps, context)
+        future_ingredients = executor.submit(extract_ingredients, context)
+        future_servings = executor.submit(get_serving_size, context)
         
         # Get results as they complete
         recipe_name = postprocess_text(future_name.result())
@@ -163,12 +166,14 @@ class ScrapeRecipeSteps(Resource):
         recipe_state.recipe_url = recipe_url
         
         try:
-            response = http_session.get(recipe_url, headers=headers)
+            # Use a timeout to prevent hanging on slow responses
+            response = http_session.get(recipe_url, headers=headers, timeout=10)
             response.raise_for_status()
         except requests.RequestException as e:
             return {'error': 'Failed to fetch recipe data: {}'.format(str(e))}, 500
         
-        soup = BeautifulSoup(response.content, 'lxml')  # Using lxml parser for better performance
+        # Use lxml parser for better performance
+        soup = BeautifulSoup(response.content, 'lxml')
 
         # Extract all recipe data in parallel
         recipe_name, recipe_steps, recipe_state.ingredients, recipe_state.servings = extract_recipe_data_parallel(soup, recipe_url)
