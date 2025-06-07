@@ -564,11 +564,7 @@ export default {
   mounted() {
     const token = localStorage.getItem('jwt_token');
     if (token) {
-    this.token = token;
-    this.token = token;
-    if (token) {
       this.token = token;
-    if (token) {
       this.isLoggedIn = true;
     } else {
       // If no token, trigger login component to try logging in
