@@ -567,7 +567,7 @@ export default {
       this.loadingInterval = setInterval(() => {
         this.loadingTextIndex = (this.loadingTextIndex + 1) % this.loadingTexts.length;
         this.currentLoadingText = this.loadingTexts[this.loadingTextIndex];
-      }, 1000);
+      }, 800);
     },
     
     stopLoadingAnimation() {
