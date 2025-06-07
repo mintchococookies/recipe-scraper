@@ -2,24 +2,22 @@ import re
 from urllib.parse import urlparse
 from constants import *
 from util.emoji_helper import emoji_map
-from .recipe_context import RecipeContext
 
-def extract_recipe_name(context: RecipeContext) -> str:
-    """Extract recipe name using the provided context."""
+def extract_recipe_name(soup, recipe_url):
     # Parse the URL to extract the recipe name
-    recipe_url = context.recipe_url[:-1] if context.recipe_url.endswith('/') else context.recipe_url
+    recipe_url = recipe_url[:-1] if recipe_url.endswith('/') else recipe_url
     parsed_url = urlparse(recipe_url)
     path_components = parsed_url.path.split('/')
     recipe_name_from_url = path_components[-1].replace('-', ' ').title()
     recipe_name_from_url = recipe_name_from_url.split('.')
     recipe_name_from_url = recipe_name_from_url[0]
 
-    # Find titles with ID or class labels
-    title_elements = context.find_elements_by_pattern(['h1', 'h2'], r'.*(title|heading|recipe-name).*')
-    title_html = [title.text.strip() + " " for title in title_elements]
+    # labelled with ID or class
+    title_html = [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'id': re.compile(r'.*(title|heading|recipe-name).*', re.I)})]
+    title_html += [title.text.strip() + " " for title in soup.find_all(['h1', 'h2'], {'class': re.compile(r'.*(title|heading|recipe-name).*', re.I)})]
     recipe_name_list = [item.strip() for item in title_html if item.strip().istitle()]
 
-    # Compare titles with URL to find best match
+    # compare which title/heading is most similar to the url cause the url usually has the recipe name in it
     matched_name = None
     for item in recipe_name_list:
         # Skip titles that are too generic (like category pages)
@@ -37,7 +35,7 @@ def extract_recipe_name(context: RecipeContext) -> str:
     # Use matched_name if found, else fallback
     name = matched_name if matched_name else recipe_name_from_url.strip()
 
-    # Add emoji if applicable
+    # Check if any emoji_map key is a substring in name (case-insensitive)
     lower_name = name.lower()
     for key in emoji_map:
         if key.lower() in lower_name:
