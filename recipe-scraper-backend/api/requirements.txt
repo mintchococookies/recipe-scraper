@@ -11,3 +11,4 @@ gunicorn
 pytest==7.4.4
 datadog_api_client
 lxml>=4.9.0
+Flask-Compress==1.14.0

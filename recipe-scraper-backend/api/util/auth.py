@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_restx import Api, Resource, fields
+from flask_compress import Compress
 import jwt
 import datetime
 import os
@@ -13,6 +14,11 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('RECIPE_SCRAPER_SESSION_KEY')
+
+# Initialize Flask-Compress with some basic configuration
+Compress(app)
+app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript']
+app.config['COMPRESS_LEVEL'] = 6  # Compression level (1-9, 9 being highest compression)
 
 authorizations = {
     'basicAuth': {
