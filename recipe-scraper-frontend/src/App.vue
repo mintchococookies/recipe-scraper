@@ -648,7 +648,7 @@ export default {
         "🎶 Humming a kitchen tune...",
         "🍞 Toasting bread to golden perfection...",
         "🛒 Running to the market real quick...",
-        "🍝 I like pasta..."
+        "🍝 I like pasta...",
       ],
       currentLoadingText: "",
       loadingTextIndex: 0,
@@ -726,11 +726,11 @@ export default {
           if (error.response?.status === 401) {
             this.recipeResponse = { error: 'Your session has expired 🫢. Please refresh the page to continue.' };
           } else if (error.response?.status === 400) {
-            this.recipeResponse = { error: '🤔 We can't seem to access this recipe URL. Please enter a valid one.' };
+            this.recipeResponse = { error: '🤔 We can\'t seem to access this recipe URL. Please enter a valid one.' };
           } else if (error.response?.status === 500) {
             this.recipeResponse = { error: 'Sorry! The structure of this webpage is too unique 😟. Rest assured, we will receive this log and fix it 💪🏻' };
           } else {
-            this.recipeResponse = { error: 'Oops, something's not right 🫨. Please try again.' };
+            this.recipeResponse = { error: 'Oops, something\'s not right 🫨. Our server might be sleeping. Please try again.' };
           }
         }
       } finally {
