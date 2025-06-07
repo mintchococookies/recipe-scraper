@@ -574,11 +574,11 @@ export default {
       this.currentLoadingText = shuffledTexts[0];
       this.loadingTextIndex = 0;
       
-      // Change text every 700ms using the shuffled array
+      // Change text every 850ms using the shuffled array
       this.loadingInterval = setInterval(() => {
         this.loadingTextIndex = (this.loadingTextIndex + 1) % shuffledTexts.length;
         this.currentLoadingText = shuffledTexts[this.loadingTextIndex];
-      }, 700);
+      }, 850);
     },
     
     stopLoadingAnimation() {
